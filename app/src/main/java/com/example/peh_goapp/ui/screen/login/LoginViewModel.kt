@@ -98,18 +98,6 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun loginWithGoogle(onLoginSuccess: () -> Unit) {
-        // Implementasi login dengan Google akan ditambahkan nanti
-        // Ini biasanya memerlukan Firebase Auth atau sistem autentikasi lainnya
-
-        // Untuk sekarang, tampilkan pesan bahwa fitur sedang dalam pengembangan
-        _uiState.update {
-            it.copy(
-                errorMessage = "Login dengan Google sedang dalam pengembangan."
-            )
-        }
-    }
-
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
