@@ -1,6 +1,10 @@
 package com.example.peh_goapp.di
 
+import com.example.peh_goapp.data.local.TokenPreference
+import com.example.peh_goapp.data.remote.api.ApiConfig
 import com.example.peh_goapp.data.remote.api.ApiService
+import com.example.peh_goapp.data.remote.api.Base64ImageApi
+import com.example.peh_goapp.data.remote.api.Base64ImageService
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
@@ -17,15 +21,24 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "  https://ceeb-66-96-225-139.ngrok-free.app/" // Ganti dengan URL API yang sebenarnya
+    // Menggunakan BASE_URL dari ApiConfig untuk konsistensi
+    private val BASE_URL = ApiConfig.BASE_URL
 
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            // Set ke BODY untuk melihat semua detail request dan response
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
         return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            .connectTimeout(120, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
+            // Tingkatkan timeout untuk stabilitas koneksi
+            .connectTimeout(180, TimeUnit.SECONDS)  // 3 menit
+            .readTimeout(180, TimeUnit.SECONDS)     // 3 menit
+            .writeTimeout(180, TimeUnit.SECONDS)    // 3 menit
+            .retryOnConnectionFailure(true)         // Retry jika koneksi gagal
             .build()
     }
 
@@ -47,5 +60,19 @@ object NetworkModule {
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
+    }
+
+    // Tambahan untuk API Base64
+    @Provides
+    @Singleton
+    fun provideBase64ImageApi(retrofit: Retrofit): Base64ImageApi {
+        return retrofit.create(Base64ImageApi::class.java)
+    }
+
+    // Service untuk gambar Base64
+    @Provides
+    @Singleton
+    fun provideBase64ImageService(api: Base64ImageApi, tokenPreference: TokenPreference): Base64ImageService {
+        return Base64ImageService(api, tokenPreference)
     }
 }

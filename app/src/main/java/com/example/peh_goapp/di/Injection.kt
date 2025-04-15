@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 object Injection {
 
-    private const val BASE_URL = "  https://ceeb-66-96-225-139.ngrok-free.app/" // Ganti dengan URL API yang sebenarnya
+    private const val BASE_URL = "https://d0b6-103-47-133-141.ngrok-free.app/" // Ganti dengan URL API yang sebenarnya
 
     private fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
@@ -54,4 +54,5 @@ object Injection {
             userRepository = provideUserRepository(context)
         )
     }
+
 }

@@ -39,10 +39,15 @@ class UserRepository @Inject constructor(
             if (response.isSuccessful) {
                 val loginResponse = response.body()
                 val token = loginResponse?.data?.token
+                val role = loginResponse?.data?.role
 
                 if (token != null) {
                     // Simpan token ke SharedPreferences
                     tokenPreference.saveToken(token)
+
+                    // Simpan role jika ada
+                    role?.let { tokenPreference.saveRole(it) }
+
                     return@withContext ApiResult.Success(token)
                 } else {
                     return@withContext ApiResult.Error("Token tidak ditemukan dalam respons")

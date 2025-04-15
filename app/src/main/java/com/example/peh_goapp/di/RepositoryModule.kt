@@ -3,6 +3,7 @@ package com.example.peh_goapp.di
 import android.content.Context
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
+import com.example.peh_goapp.data.repository.DestinationRepository
 import com.example.peh_goapp.data.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -28,5 +29,15 @@ object RepositoryModule {
         tokenPreference: TokenPreference
     ): UserRepository {
         return UserRepository(apiService, tokenPreference)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDestinationRepository(
+        apiService: ApiService,
+        tokenPreference: TokenPreference,
+        @ApplicationContext context: Context // Tambahkan Context ke parameter
+    ): DestinationRepository {
+        return DestinationRepository(apiService, tokenPreference, context)
     }
 }

@@ -1,14 +1,10 @@
 package com.example.peh_goapp.data.remote.api
 
-import com.example.peh_goapp.data.remote.dto.LoginRequest
-import com.example.peh_goapp.data.remote.dto.LoginResponse
-import com.example.peh_goapp.data.remote.dto.RegisterRequest
-import com.example.peh_goapp.data.remote.dto.RegisterResponse
+import com.example.peh_goapp.data.remote.dto.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.Header
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface ApiService {
 
@@ -26,4 +22,71 @@ interface ApiService {
     suspend fun logout(
         @Header("Authorization") token: String
     ): Response<Map<String, String>>
+
+    /**
+     * Endpoint untuk mendapatkan daftar destinasi berdasarkan kategori
+     * @param categoryId ID kategori
+     * @param token Token autentikasi (tanpa prefix Bearer)
+     * @param page Nomor halaman (default: 1)
+     * @param limit Jumlah item per halaman (default: 10)
+     */
+    @GET("users/{categoryId}/destinations")
+    suspend fun getDestinations(
+        @Path("categoryId") categoryId: Int,
+        @Header("Authorization") token: String, // Mengirim token tanpa "Bearer "
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 10
+    ): Response<DestinationsResponse>
+
+    /**
+     * Endpoint untuk mendapatkan detail destinasi
+     * @param categoryId ID kategori
+     * @param destinationId ID destinasi
+     * @param token Token autentikasi (tanpa prefix Bearer)
+     */
+    @GET("users/{categoryId}/destinations/{destinationId}")
+    suspend fun getDestinationDetail(
+        @Path("categoryId") categoryId: Int,
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String // Mengirim token tanpa "Bearer "
+    ): Response<DestinationDetailResponse>
+
+    /**
+     * Endpoint untuk menambahkan destinasi baru
+     * @param categoryId ID kategori
+     * @param token Token autentikasi (tanpa prefix Bearer)
+     * @param name Nama destinasi
+     * @param address Alamat destinasi
+     * @param description Deskripsi destinasi
+     * @param urlLocation URL Google Maps
+     * @param cover Gambar cover (wajib)
+     * @param picture Daftar gambar tambahan (opsional, maksimal 3)
+     */
+    @Multipart
+    @POST("users/{categoryId}/destinations")
+    suspend fun addDestination(
+        @Path("categoryId") categoryId: Int,
+        @Header("Authorization") token: String,
+        @Part("name") name: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("urlLocation") urlLocation: RequestBody,
+        @Part cover: MultipartBody.Part,
+        @Part picture: List<MultipartBody.Part>?
+    ): Response<DestinationDetailResponse>
+
+    // Tambahkan fungsi ini ke dalam ApiService.kt
+
+    /**
+     * Endpoint untuk menghapus destinasi
+     * @param categoryId ID kategori
+     * @param destinationId ID destinasi
+     * @param token Token autentikasi
+     */
+    @DELETE("users/{categoryId}/destinations/{destinationId}")
+    suspend fun deleteDestination(
+        @Path("categoryId") categoryId: Int,
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String
+    ): Response<Map<String, String>> // Response: { "message": "Destinasi berhasil dihapus" }
 }

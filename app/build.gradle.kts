@@ -79,9 +79,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.5")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation(libs.hilt.android.v249)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose.v120)
 
     // Retrofit & OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -93,6 +93,16 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // Coil - Image loading
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Untuk akses media
+    implementation(libs.androidx.activity.compose.v190)
+    implementation(libs.androidx.activity.ktx)
+
+    // Untuk pengelolaan gambar
+    implementation(libs.coil.kt.coil.compose)
+
     //testing
-    testImplementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    testImplementation(libs.hilt.navigation.compose.v120)
 }

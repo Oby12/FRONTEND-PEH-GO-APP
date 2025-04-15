@@ -1,3 +1,4 @@
+// Perubahan pada ApiModels.kt
 package com.example.peh_goapp.data.remote.dto
 
 data class LoginRequest(
@@ -11,7 +12,8 @@ data class LoginResponse(
 )
 
 data class LoginData(
-    val token: String
+    val token: String,
+    val role: String? = null  // Tambahkan field role dengan default null
 )
 
 data class ErrorResponse(
@@ -19,7 +21,7 @@ data class ErrorResponse(
 )
 
 data class RegisterRequest(
-    val role: String,
+    //val role: String,
     val username: String,
     val name: String,
     val email: String,

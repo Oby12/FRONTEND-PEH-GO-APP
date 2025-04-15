@@ -24,6 +24,7 @@ class TokenPreference @Inject constructor(context: Context) {
 
     companion object {
         private const val KEY_TOKEN = "auth_token"
+        private const val KEY_ROLE = "user_role" // Tambahkan key untuk role
     }
 
     fun saveToken(token: String) {
@@ -37,9 +38,25 @@ class TokenPreference @Inject constructor(context: Context) {
         return sharedPreferences.getString(KEY_TOKEN, "") ?: ""
     }
 
+    fun saveRole(role: String) {
+        sharedPreferences.edit().apply {
+            putString(KEY_ROLE, role)
+            apply()
+        }
+    }
+
+    fun getRole(): String {
+        return sharedPreferences.getString(KEY_ROLE, "") ?: ""
+    }
+
+    fun isAdmin(): Boolean {
+        return getRole() == "ADMIN"
+    }
+
     fun clearToken() {
         sharedPreferences.edit().apply {
             remove(KEY_TOKEN)
+            remove(KEY_ROLE) // Juga hapus role saat logout
             apply()
         }
     }
