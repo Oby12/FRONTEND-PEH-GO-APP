@@ -89,4 +89,70 @@ interface ApiService {
         @Path("destinationId") destinationId: Int,
         @Header("Authorization") token: String
     ): Response<Map<String, String>> // Response: { "message": "Destinasi berhasil dihapus" }
+
+
+    /**
+     * Endpoint untuk mengupdate destinasi yang sudah ada
+     * @param categoryId ID kategori
+     * @param destinationId ID destinasi
+     * @param token Token autentikasi
+     * @param name Nama destinasi
+     * @param address Alamat destinasi
+     * @param description Deskripsi destinasi
+     * @param urlLocation URL Google Maps
+     * @param cover Gambar cover (opsional)
+     * @param picture Daftar gambar tambahan (opsional)
+     */
+    @Multipart
+    @PUT("users/{categoryId}/destinations/{destinationId}")
+    suspend fun updateDestination(
+        @Path("categoryId") categoryId: Int,
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String,
+        @Part("name") name: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("urlLocation") urlLocation: RequestBody,
+        @Part cover: MultipartBody.Part?,
+        @Part picture: List<MultipartBody.Part>?
+    ): Response<DestinationDetailResponse>
+
+    /**
+     * Endpoint untuk mengupdate destinasi dengan daftar ID gambar yang dihapus
+     * @param categoryId ID kategori
+     * @param destinationId ID destinasi
+     * @param token Token autentikasi
+     * @param name Nama destinasi
+     * @param address Alamat destinasi
+     * @param description Deskripsi destinasi
+     * @param urlLocation URL Google Maps
+     * @param removedPictureIds ID gambar yang akan dihapus (string dengan format daftar ID terpisah koma)
+     * @param cover Gambar cover (opsional)
+     * @param picture Daftar gambar tambahan (opsional)
+     */
+    @Multipart
+    @PUT("users/{categoryId}/destinations/{destinationId}")
+    suspend fun updateDestination(
+        @Path("categoryId") categoryId: Int,
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String,
+        @Part("name") name: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("urlLocation") urlLocation: RequestBody,
+        @Part("removedPictureIds") removedPictureIds: RequestBody? = null,
+        @Part cover: MultipartBody.Part? = null,
+        @Part picture: List<MultipartBody.Part>? = null
+    ): Response<DestinationDetailResponse>
+
+    @GET("admin/stats")
+    suspend fun getStats(
+        @Header("Authorization") token: String
+    ): Response<StatsResponse>
+
+    @POST("destinations/{destinationId}/view")
+    suspend fun recordDestinationView(
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String
+    ): Response<Map<String, String>>
 }

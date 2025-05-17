@@ -5,6 +5,7 @@ import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
 import com.example.peh_goapp.data.repository.UserRepository
 import com.example.peh_goapp.ui.screen.login.LoginViewModel
+import com.example.peh_goapp.util.ResourceProvider
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 object Injection {
 
-    private const val BASE_URL = "https://d0b6-103-47-133-141.ngrok-free.app/" // Ganti dengan URL API yang sebenarnya
+    private const val BASE_URL = "https://9eac-114-10-99-122.ngrok-free.app/" // Ganti dengan URL API yang sebenarnya
 
     private fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
@@ -42,6 +43,11 @@ object Injection {
         return TokenPreference(context)
     }
 
+    // Menambahkan provider untuk ResourceProvider
+    private fun provideResourceProvider(context: Context): ResourceProvider {
+        return ResourceProvider(context)
+    }
+
     private fun provideUserRepository(context: Context): UserRepository {
         return UserRepository(
             apiService = provideApiService(),
@@ -51,8 +57,9 @@ object Injection {
 
     fun provideLoginViewModel(context: Context): LoginViewModel {
         return LoginViewModel(
-            userRepository = provideUserRepository(context)
+            userRepository = provideUserRepository(context),
+            tokenPreference = provideTokenPreference(context),
+            resourceProvider = provideResourceProvider(context) // Menambahkan parameter ResourceProvider
         )
     }
-
 }

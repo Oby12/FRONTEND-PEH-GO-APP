@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">PEH-GO APP</string>
+    <!-- Error Messages -->
+    <string name="error_unknown">Terjadi kesalahan yang tidak diketahui</string>
+    <string name="error_network">Terjadi masalah koneksi. Periksa koneksi internet Anda</string>
+    <string name="error_server">Terjadi masalah pada server</string>
+    <string name="error_invalid_credentials">Email atau password salah</string>
+    <string name="error_email_exists">Email sudah digunakan</string>
+    <string name="error_username_exists">Username sudah digunakan</string>
+    <string name="error_token_not_found">Token tidak ditemukan dalam respons</string>
+    <string name="error_unauthorized">Tidak memiliki akses</string>
+    <string name="error_token_required">Token diperlukan untuk akses</string>
+    <string name="error_invalid_token">Token tidak valid</string>
+    <string name="error_forbidden">Anda tidak memiliki izin</string>
+    <string name="error_destination_not_found">Destinasi tidak ditemukan</string>
+    <string name="error_category_not_found">Kategori tidak ditemukan</string>
+
+    <!-- Validation errors -->
+    <string name="error_email_empty">Email tidak boleh kosong</string>
+    <string name="error_email_invalid">Format email tidak valid</string>
+    <string name="error_password_empty">Password tidak boleh kosong</string>
+    <string name="error_password_too_short">Password minimal 6 karakter</string>
 </resources>

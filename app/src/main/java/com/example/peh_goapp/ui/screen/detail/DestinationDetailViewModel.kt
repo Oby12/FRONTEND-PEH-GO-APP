@@ -9,6 +9,7 @@ import com.example.peh_goapp.data.model.PictureModel
 import com.example.peh_goapp.data.remote.api.ApiResult
 import com.example.peh_goapp.data.remote.api.Base64ImageService
 import com.example.peh_goapp.data.repository.DestinationRepository
+import com.example.peh_goapp.data.repository.StatsRepository // Tambahkan import ini
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,8 +37,10 @@ data class DestinationDetailUiState(
 class DestinationDetailViewModel @Inject constructor(
     private val destinationRepository: DestinationRepository,
     private val base64ImageService: Base64ImageService,
-    private val tokenPreference: TokenPreference
+    private val tokenPreference: TokenPreference,
+    private val statsRepository: StatsRepository // Tambahkan dependency ini
 ) : ViewModel() {
+    private val TAG = "DestinationDetailVM"
 
     private val _uiState = MutableStateFlow(DestinationDetailUiState())
     val uiState: StateFlow<DestinationDetailUiState> = _uiState.asStateFlow()
@@ -54,7 +57,7 @@ class DestinationDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                Log.d("DestinationDetailVM", "Memuat detail destinasi: $destinationId")
+                Log.d(TAG, "Memuat detail destinasi: $destinationId")
                 when (val result = destinationRepository.getDestinationDetail(categoryId, destinationId)) {
                     is ApiResult.Success -> {
                         val destination = result.data
@@ -76,9 +79,12 @@ class DestinationDetailViewModel @Inject constructor(
                         destination.pictures.forEach { picture ->
                             loadPictureImage(picture.id)
                         }
+
+                        // Catat view destinasi
+                        recordDestinationView(destinationId)
                     }
                     is ApiResult.Error -> {
-                        Log.e("DestinationDetailVM", "Error: ${result.errorMessage}")
+                        Log.e(TAG, "Error: ${result.errorMessage}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -88,7 +94,7 @@ class DestinationDetailViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Log.e("DestinationDetailVM", "Exception: ${e.message}", e)
+                Log.e(TAG, "Exception: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -99,9 +105,29 @@ class DestinationDetailViewModel @Inject constructor(
         }
     }
 
+    // Fungsi untuk mencatat view destinasi
+    private suspend fun recordDestinationView(destinationId: Int) {
+        try {
+            Log.d(TAG, "Mencatat view untuk destinasi: $destinationId")
+
+            when (val result = statsRepository.recordDestinationView(destinationId)) {
+                is ApiResult.Success -> {
+                    Log.d(TAG, "Berhasil mencatat view")
+                }
+                is ApiResult.Error -> {
+                    Log.e(TAG, "Gagal mencatat view: ${result.errorMessage}")
+                    // Tidak perlu menampilkan error ke user jika gagal mencatat view
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception saat mencatat view: ${e.message}", e)
+            // Tidak perlu menampilkan error ke user jika gagal mencatat view
+        }
+    }
+
     private suspend fun loadCoverImage(destinationId: Int) {
         try {
-            Log.d("DestinationDetailVM", "Memuat gambar cover untuk destinasi: $destinationId")
+            Log.d(TAG, "Memuat gambar cover untuk destinasi: $destinationId")
             val bitmap = base64ImageService.getDestinationCoverImage(destinationId)
             _uiState.update {
                 it.copy(
@@ -110,7 +136,7 @@ class DestinationDetailViewModel @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            Log.e("DestinationDetailVM", "Error loading cover image: ${e.message}", e)
+            Log.e(TAG, "Error loading cover image: ${e.message}", e)
             _uiState.update {
                 it.copy(isLoading = false)
             }
@@ -119,7 +145,7 @@ class DestinationDetailViewModel @Inject constructor(
 
     private suspend fun loadPictureImage(pictureId: Int) {
         try {
-            Log.d("DestinationDetailVM", "Memuat gambar tambahan: $pictureId")
+            Log.d(TAG, "Memuat gambar tambahan: $pictureId")
             val bitmap = base64ImageService.getPictureImage(pictureId)
             _uiState.update {
                 val updatedPictureImages = it.pictureImages.toMutableMap()
@@ -127,7 +153,7 @@ class DestinationDetailViewModel @Inject constructor(
                 it.copy(pictureImages = updatedPictureImages)
             }
         } catch (e: Exception) {
-            Log.e("DestinationDetailVM", "Error loading picture image: ${e.message}", e)
+            Log.e(TAG, "Error loading picture image: ${e.message}", e)
         }
     }
 
@@ -139,15 +165,15 @@ class DestinationDetailViewModel @Inject constructor(
                 val categoryId = _uiState.value.categoryId
                 val destinationId = _uiState.value.destinationId
 
-                Log.d("DestinationDetailVM", "Menghapus destinasi: $destinationId")
+                Log.d(TAG, "Menghapus destinasi: $destinationId")
                 when (val result = destinationRepository.deleteDestination(categoryId, destinationId)) {
                     is ApiResult.Success -> {
-                        Log.d("DestinationDetailVM", "Berhasil menghapus destinasi")
+                        Log.d(TAG, "Berhasil menghapus destinasi")
                         _uiState.update { it.copy(isLoading = false) }
                         onDeleteSuccess()
                     }
                     is ApiResult.Error -> {
-                        Log.e("DestinationDetailVM", "Error menghapus: ${result.errorMessage}")
+                        Log.e(TAG, "Error menghapus: ${result.errorMessage}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -157,7 +183,7 @@ class DestinationDetailViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Log.e("DestinationDetailVM", "Exception menghapus: ${e.message}", e)
+                Log.e(TAG, "Exception menghapus: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,

@@ -105,4 +105,13 @@ dependencies {
 
     //testing
     testImplementation(libs.hilt.navigation.compose.v120)
+
+    //camerax
+    // Tambahkan dependensi untuk camera dan barcode scanning
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.barcode.scanning)
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
 }

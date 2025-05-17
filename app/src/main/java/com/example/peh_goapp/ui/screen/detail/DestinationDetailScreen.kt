@@ -35,6 +35,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.peh_goapp.R
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.Base64ImageService
+import com.example.peh_goapp.data.remote.api.ApiConfig
+import com.example.peh_goapp.utils.DestinationUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +62,7 @@ fun DestinationDetailScreen(
 
     Scaffold(
         bottomBar = {
-            // Bottom bar with Let's Go button and shadow directed upwards
+            // Bottom bar with Let's Go button and Download QR button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,13 +110,15 @@ fun DestinationDetailScreen(
                 )
 
                 // Actual bottom bar content - positioned below shadow
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .background(Color.White)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // Let's Go button (reduced width)
                     Button(
                         onClick = {
                             try {
@@ -126,7 +130,7 @@ fun DestinationDetailScreen(
                             }
                         },
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(0.7f)
                             .height(48.dp),
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -152,6 +156,37 @@ fun DestinationDetailScreen(
                                 tint = Color.White
                             )
                         }
+                    }
+
+                    // Download QR Code button (BARU)
+                    // Tombol Download QR Code (Diupdate)
+                    Button(
+                        onClick = {
+                            try {
+                                // Gunakan utility class untuk download
+                                DestinationUtils.downloadQrCode(
+                                    context = context,
+                                    categoryId = categoryId,
+                                    destinationId = destinationId,
+                                    destinationName = uiState.name
+                                )
+                            } catch (e: Exception) {
+                                viewModel.setErrorMessage("Gagal mendownload QR code: ${e.message}")
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(0.3f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF03A9F4) // Biru untuk membedakan
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_download),
+                            contentDescription = "Download QR Code",
+                            tint = Color.White
+                        )
                     }
                 }
             }

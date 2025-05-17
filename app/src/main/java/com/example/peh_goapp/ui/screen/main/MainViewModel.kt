@@ -1,8 +1,10 @@
 package com.example.peh_goapp.ui.screen.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.peh_goapp.R
+import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.model.BannerModel
 import com.example.peh_goapp.data.model.CategoryModel
 import com.example.peh_goapp.data.repository.UserRepository
@@ -14,17 +16,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "MainViewModel"
+
 data class MainScreenState(
     val isLoading: Boolean = false,
     val banners: List<BannerModel> = emptyList(),
     val categories: List<CategoryModel> = emptyList(),
     val isDrawerOpen: Boolean = false,
-    val errorMessage: String? = null
+    val userName: String = "",
+    val errorMessage: String? = null,
+    val logoutSuccess: Boolean = false,
+    // PERBAIKAN: tambahkan flag untuk menentukan apakah error perlu ditampilkan
+    val shouldShowError: Boolean = true
 )
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tokenPreference: TokenPreference
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainScreenState())
@@ -33,6 +42,28 @@ class MainViewModel @Inject constructor(
     init {
         loadBanners()
         loadCategories()
+        loadUserData()
+    }
+
+    private fun loadUserData() {
+        // Debugging untuk token dan data pengguna yang tersimpan
+        val token = tokenPreference.getToken()
+        val name = tokenPreference.getName()
+        val username = tokenPreference.getUsername()
+        val email = tokenPreference.getEmail()
+        val role = tokenPreference.getRole()
+
+        Log.d(TAG, "Token: ${if(token.isBlank()) "TIDAK ADA" else "${token.take(10)}..."}")
+        Log.d(TAG, "Nama tersimpan: '$name'")
+        Log.d(TAG, "Username tersimpan: '$username'")
+        Log.d(TAG, "Email tersimpan: '$email'")
+        Log.d(TAG, "Role tersimpan: '$role'")
+
+        // Mendapatkan nama pengguna dari repository (dengan fallback)
+        val userName = userRepository.getUserName()
+        Log.d(TAG, "Hasil getUserName(): '$userName'")
+
+        _uiState.update { it.copy(userName = userName) }
     }
 
     private fun loadBanners() {
@@ -102,22 +133,54 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isDrawerOpen = !it.isDrawerOpen) }
     }
 
-    fun logout(onLogoutSuccess: () -> Unit) {
+    fun logout() {
         viewModelScope.launch {
+            Log.d(TAG, "Memulai proses logout...")
             _uiState.update { it.copy(isLoading = true) }
 
-            when (val result = userRepository.logout()) {
-                is com.example.peh_goapp.data.remote.api.ApiResult.Success -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    onLogoutSuccess()
-                }
-                is com.example.peh_goapp.data.remote.api.ApiResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = result.errorMessage
-                        )
+            try {
+                when (val result = userRepository.logout()) {
+                    is com.example.peh_goapp.data.remote.api.ApiResult.Success -> {
+                        Log.d(TAG, "Logout berhasil: ${result.data}")
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                logoutSuccess = true,
+                                // PERBAIKAN: Jangan tampilkan error pada kasus sukses
+                                errorMessage = null,
+                                shouldShowError = false
+                            )
+                        }
                     }
+                    is com.example.peh_goapp.data.remote.api.ApiResult.Error -> {
+                        Log.e(TAG, "Logout error: ${result.errorMessage}")
+
+                        // PERBAIKAN: Set errorMessage tapi jangan tampilkan jika logout lokal berhasil
+                        // (UserRepository seharusnya sudah menangani ini)
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                // Simpan error, tapi tidak perlu menampilkannya ke user
+                                errorMessage = result.errorMessage,
+                                // Tetap anggap sukses, karena logout lokal berhasil
+                                logoutSuccess = true,
+                                // PERBAIKAN: Jangan tampilkan error
+                                shouldShowError = false
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception saat logout: ${e.message}", e)
+
+                // PERBAIKAN: Bahkan jika ada exception, logout lokal tetap berhasil
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Terjadi kesalahan: ${e.message}",
+                        logoutSuccess = true,
+                        shouldShowError = false
+                    )
                 }
             }
         }
@@ -125,5 +188,13 @@ class MainViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun clearLogoutSuccess() {
+        _uiState.update { it.copy(logoutSuccess = false) }
+    }
+
+    fun refreshUserData() {
+        loadUserData()
     }
 }

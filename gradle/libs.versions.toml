@@ -1,5 +1,8 @@
 [versions]
+accompanistPager = "0.25.1"
 activityComposeVersion = "1.9.0"
+barcodeScanning = "17.3.0"
+cameraCamera2 = "1.4.2"
 coilComposeVersion = "2.4.0"
 compileSdk = "34"
 hiltAndroid = "2.49"
@@ -26,8 +29,13 @@ androidxJunit = "1.1.5"
 espresso = "3.5.1"
 
 [libraries]
+accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
+accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPager" }
 androidx-activity-compose-v190 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityComposeVersion" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -44,6 +52,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 coil-kt-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 hilt-android-v249 = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-navigation-compose-v120 = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationComposeVersion" }

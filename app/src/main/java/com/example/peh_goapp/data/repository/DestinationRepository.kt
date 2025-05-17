@@ -34,6 +34,7 @@ class DestinationRepository @Inject constructor(
     private val tokenPreference: TokenPreference,
     private val appContext: Context // Inject context untuk mengakses file system
 ) {
+    private val TAG = "DestinationRepository"
 
     /**
      * Mendapatkan detail destinasi
@@ -45,7 +46,7 @@ class DestinationRepository @Inject constructor(
                 return@withContext ApiResult.Error("Token tidak ditemukan. Silakan login terlebih dahulu.")
             }
 
-            Log.d("DestinationRepository", "Mengambil detail destinasi: $destinationId dari kategori: $categoryId")
+            Log.d(TAG, "Mengambil detail destinasi: $destinationId dari kategori: $categoryId")
 
             val response = apiService.getDestinationDetail(
                 categoryId = categoryId,
@@ -64,7 +65,7 @@ class DestinationRepository @Inject constructor(
                         )
                     }
 
-                    Log.d("DestinationRepository", "Berhasil mendapatkan detail dengan ${pictures.size} gambar")
+                    Log.d(TAG, "Berhasil mendapatkan detail dengan ${pictures.size} gambar")
 
                     return@withContext ApiResult.Success(
                         DestinationDetailModel(
@@ -83,11 +84,11 @@ class DestinationRepository @Inject constructor(
                 }
             } else {
                 val errorMessage = parseErrorResponse(response)
-                Log.e("DestinationRepository", "Error response: $errorMessage")
+                Log.e(TAG, "Error response: $errorMessage")
                 return@withContext ApiResult.Error(errorMessage)
             }
         } catch (e: Exception) {
-            Log.e("DestinationRepository", "Error fetching destination detail: ${e.message}", e)
+            Log.e(TAG, "Error fetching destination detail: ${e.message}", e)
             return@withContext ApiResult.Error("Terjadi kesalahan: ${e.message}")
         }
     }
@@ -102,7 +103,7 @@ class DestinationRepository @Inject constructor(
                 return@withContext ApiResult.Error("Token tidak ditemukan. Silakan login terlebih dahulu.")
             }
 
-            Log.d("DestinationRepository", "Menghapus destinasi: $destinationId dari kategori: $categoryId")
+            Log.d(TAG, "Menghapus destinasi: $destinationId dari kategori: $categoryId")
 
             val response = apiService.deleteDestination(
                 categoryId = categoryId,
@@ -111,15 +112,15 @@ class DestinationRepository @Inject constructor(
             )
 
             if (response.isSuccessful) {
-                Log.d("DestinationRepository", "Berhasil menghapus destinasi")
+                Log.d(TAG, "Berhasil menghapus destinasi")
                 return@withContext ApiResult.Success(Unit)
             } else {
                 val errorMessage = parseErrorResponse(response)
-                Log.e("DestinationRepository", "Error menghapus destinasi: $errorMessage")
+                Log.e(TAG, "Error menghapus destinasi: $errorMessage")
                 return@withContext ApiResult.Error(errorMessage)
             }
         } catch (e: Exception) {
-            Log.e("DestinationRepository", "Error deleting destination: ${e.message}", e)
+            Log.e(TAG, "Error deleting destination: ${e.message}", e)
             return@withContext ApiResult.Error("Terjadi kesalahan: ${e.message}")
         }
     }
@@ -135,7 +136,7 @@ class DestinationRepository @Inject constructor(
             }
 
             // Log token untuk debugging (hanya 10 karakter pertama untuk keamanan)
-            Log.d("DestinationRepository", "Using token: ${token.take(10)}...")
+            Log.d(TAG, "Using token: ${token.take(10)}...")
 
             // Mengirim token tanpa menambahkan prefix "Bearer "
             val response = apiService.getDestinations(
@@ -167,7 +168,7 @@ class DestinationRepository @Inject constructor(
                 return@withContext ApiResult.Error(errorMessage)
             }
         } catch (e: Exception) {
-            Log.e("DestinationRepository", "Error fetching destinations: ${e.message}", e)
+            Log.e(TAG, "Error fetching destinations: ${e.message}", e)
             return@withContext ApiResult.Error("Terjadi kesalahan: ${e.message}")
         }
     }
@@ -190,7 +191,7 @@ class DestinationRepository @Inject constructor(
                 return@withContext ApiResult.Error("Token tidak ditemukan. Silakan login terlebih dahulu.")
             }
 
-            Log.d("DestinationRepository", "Preparing to upload destination: $name")
+            Log.d(TAG, "Preparing to upload destination: $name")
 
             // Konversi fields ke RequestBody
             val nameRequestBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -198,29 +199,29 @@ class DestinationRepository @Inject constructor(
             val descriptionRequestBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
             val urlLocationRequestBody = urlLocation.toRequestBody("text/plain".toMediaTypeOrNull())
 
-            Log.d("DestinationRepository", "Converting cover image to file")
+            Log.d(TAG, "Converting cover image to file")
 
             // Konversi cover image ke MultipartBody.Part
             val coverFile = getFileFromUri(coverImageUri)
             val coverRequestFile = coverFile.asRequestBody("image/*".toMediaTypeOrNull())
             val coverPart = MultipartBody.Part.createFormData("cover", coverFile.name, coverRequestFile)
 
-            Log.d("DestinationRepository", "Cover image prepared: ${coverFile.length()} bytes")
+            Log.d(TAG, "Cover image prepared: ${coverFile.length()} bytes")
 
             // Konversi picture images ke MultipartBody.Part list jika ada
             val pictureParts = pictureImageUris?.mapNotNull { uri ->
                 try {
                     val pictureFile = getFileFromUri(uri)
                     val pictureRequestFile = pictureFile.asRequestBody("image/*".toMediaTypeOrNull())
-                    Log.d("DestinationRepository", "Picture prepared: ${pictureFile.length()} bytes")
+                    Log.d(TAG, "Picture prepared: ${pictureFile.length()} bytes")
                     MultipartBody.Part.createFormData("picture", pictureFile.name, pictureRequestFile)
                 } catch (e: Exception) {
-                    Log.e("DestinationRepository", "Error converting picture: ${e.message}")
+                    Log.e(TAG, "Error converting picture: ${e.message}")
                     null
                 }
             }
 
-            Log.d("DestinationRepository", "Sending request to API with ${pictureParts?.size ?: 0} additional pictures")
+            Log.d(TAG, "Sending request to API with ${pictureParts?.size ?: 0} additional pictures")
 
             // Kirim request ke API
             val response = apiService.addDestination(
@@ -238,7 +239,7 @@ class DestinationRepository @Inject constructor(
                 val destinationResponse = response.body()
                 if (destinationResponse != null) {
                     val destination = destinationResponse.data
-                    Log.d("DestinationRepository", "Destination added successfully with ID: ${destination.id}")
+                    Log.d(TAG, "Destination added successfully with ID: ${destination.id}")
 
                     return@withContext ApiResult.Success(
                         DestinationModel(
@@ -251,16 +252,169 @@ class DestinationRepository @Inject constructor(
                         )
                     )
                 } else {
-                    Log.e("DestinationRepository", "Response body is null despite successful response")
+                    Log.e(TAG, "Response body is null despite successful response")
                     return@withContext ApiResult.Error("Respons data kosong")
                 }
             } else {
                 val errorMessage = parseErrorResponse(response)
-                Log.e("DestinationRepository", "API error: $errorMessage")
+                Log.e(TAG, "API error: $errorMessage")
                 return@withContext ApiResult.Error(errorMessage)
             }
         } catch (e: Exception) {
-            Log.e("DestinationRepository", "Error adding destination: ${e.message}", e)
+            Log.e(TAG, "Error adding destination: ${e.message}", e)
+            return@withContext ApiResult.Error("Terjadi kesalahan: ${e.message}")
+        }
+    }
+
+    /**
+     * Mengupdate destinasi yang sudah ada
+     */
+    suspend fun updateDestination(
+        categoryId: Int,
+        destinationId: Int,
+        name: String,
+        address: String,
+        description: String,
+        urlLocation: String,
+        coverImageUri: Uri? = null,
+        pictureImageUris: List<Uri>? = null,
+        removedPictureIds: List<Int>? = null
+    ): ApiResult<DestinationModel> = withContext(Dispatchers.IO) {
+        try {
+            val token = tokenPreference.getToken()
+            if (token.isBlank()) {
+                return@withContext ApiResult.Error("Token tidak ditemukan. Silakan login terlebih dahulu.")
+            }
+
+            Log.d(TAG, "Mempersiapkan update destinasi: $name (ID: $destinationId)")
+            Log.d(TAG, "Data update: categoryId=$categoryId, name=$name, address=$address")
+            Log.d(TAG, "coverImageUri=$coverImageUri, pictureImageUris=${pictureImageUris?.size ?: 0}")
+            Log.d(TAG, "removedPictureIds=$removedPictureIds")
+
+            // Konversi fields ke RequestBody
+            val nameRequestBody = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val addressRequestBody = address.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionRequestBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val urlLocationRequestBody = urlLocation.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            // Jika ada ID gambar yang akan dihapus, tambahkan ke request sebagai string
+            val removedPictureIdsRequestBody = if (removedPictureIds != null && removedPictureIds.isNotEmpty()) {
+                // Kirim langsung sebagai string CSV, bukan JSON - ini untuk menghindari masalah parsing di backend
+                val idsString = removedPictureIds.joinToString(",")
+                Log.d(TAG, "removedPictureIds string CSV: $idsString")
+                idsString.toRequestBody("text/plain".toMediaTypeOrNull())
+            } else {
+                null
+            }
+
+            // Variabel untuk menyimpan coverPart
+            var coverPart: MultipartBody.Part? = null
+
+            // Konversi cover image ke MultipartBody.Part jika ada
+            if (coverImageUri != null) {
+                Log.d(TAG, "Mengkonversi gambar cover")
+                val coverFile = getFileFromUri(coverImageUri)
+                val coverRequestFile = coverFile.asRequestBody("image/*".toMediaTypeOrNull())
+                coverPart = MultipartBody.Part.createFormData("cover", coverFile.name, coverRequestFile)
+                Log.d(TAG, "Cover image disiapkan: ${coverFile.length()} bytes")
+            }
+
+            // Konversi picture images ke MultipartBody.Part list jika ada
+            val pictureParts = pictureImageUris?.mapNotNull { uri ->
+                try {
+                    val pictureFile = getFileFromUri(uri)
+                    val pictureRequestFile = pictureFile.asRequestBody("image/*".toMediaTypeOrNull())
+                    Log.d(TAG, "Picture disiapkan: ${pictureFile.length()} bytes")
+                    MultipartBody.Part.createFormData("picture", pictureFile.name, pictureRequestFile)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error mengkonversi gambar: ${e.message}")
+                    null
+                }
+            }
+
+            Log.d(TAG, "Mengirim request update ke API dengan ${pictureParts?.size ?: 0} gambar tambahan")
+            Log.d(TAG, "Token: ${token.take(10)}...")
+
+            // Kirim request ke API
+            val response = if (removedPictureIdsRequestBody != null) {
+                Log.d(TAG, "Mengirim request dengan removedPictureIds")
+                // Request dengan removedPictureIds
+                apiService.updateDestination(
+                    categoryId = categoryId,
+                    destinationId = destinationId,
+                    token = token,
+                    name = nameRequestBody,
+                    address = addressRequestBody,
+                    description = descriptionRequestBody,
+                    urlLocation = urlLocationRequestBody,
+                    removedPictureIds = removedPictureIdsRequestBody,
+                    cover = coverPart,
+                    picture = pictureParts
+                )
+            } else {
+                Log.d(TAG, "Mengirim request tanpa removedPictureIds")
+                // Request tanpa removedPictureIds
+                apiService.updateDestination(
+                    categoryId = categoryId,
+                    destinationId = destinationId,
+                    token = token,
+                    name = nameRequestBody,
+                    address = addressRequestBody,
+                    description = descriptionRequestBody,
+                    urlLocation = urlLocationRequestBody,
+                    cover = coverPart,
+                    picture = pictureParts
+                )
+            }
+
+            if (response.isSuccessful) {
+                val destinationResponse = response.body()
+                if (destinationResponse != null) {
+                    val destination = destinationResponse.data
+
+                    // Pastikan semua field yang diperlukan tidak null
+                    // Gunakan nilai dari parameter fungsi jika nilai dari API null
+                    val safeDestination = DestinationModel(
+                        id = destination.id ?: destinationId,
+                        name = destination.name ?: name,
+                        address = destination.address ?: address,
+                        description = destination.description ?: description,
+                        urlLocation = destination.urlLocation ?: urlLocation,
+                        coverUrl = destination.coverUrl ?: ""
+                    )
+
+                    Log.d(TAG, "Destinasi berhasil diupdate dengan ID: ${safeDestination.id}")
+                    return@withContext ApiResult.Success(safeDestination)
+                } else {
+                    Log.e(TAG, "Response body null meskipun response sukses")
+                    // Return model dengan data dari parameter, bukan dari response
+                    val fallbackModel = DestinationModel(
+                        id = destinationId,
+                        name = name,
+                        address = address,
+                        description = description,
+                        urlLocation = urlLocation,
+                        coverUrl = ""
+                    )
+                    return@withContext ApiResult.Success(fallbackModel)
+                }
+            } else {
+                val errorMessage = parseErrorResponse(response)
+                Log.e(TAG, "API error: $errorMessage")
+                Log.e(TAG, "Response code: ${response.code()}")
+
+                // Log response body for debugging
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Error body: $errorBody")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error reading error body: ${e.message}")
+                }
+
+                return@withContext ApiResult.Error(errorMessage)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error update destinasi: ${e.message}", e)
             return@withContext ApiResult.Error("Terjadi kesalahan: ${e.message}")
         }
     }
@@ -289,11 +443,11 @@ class DestinationRepository @Inject constructor(
                 }
             } ?: throw IllegalStateException("Tidak dapat membuka file dari URI: $uri")
 
-            Log.d("DestinationRepository", "File created from URI: ${tempFile.absolutePath}, size: ${tempFile.length()} bytes")
+            Log.d(TAG, "File created from URI: ${tempFile.absolutePath}, size: ${tempFile.length()} bytes")
 
             return tempFile
         } catch (e: Exception) {
-            Log.e("DestinationRepository", "Error creating file from URI: ${e.message}", e)
+            Log.e(TAG, "Error creating file from URI: ${e.message}", e)
             throw e
         }
     }

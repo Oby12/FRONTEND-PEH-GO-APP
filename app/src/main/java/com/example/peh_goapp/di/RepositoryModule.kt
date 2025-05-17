@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
 import com.example.peh_goapp.data.repository.DestinationRepository
+import com.example.peh_goapp.data.repository.StatsRepository
 import com.example.peh_goapp.data.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -16,11 +17,11 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
-    @Provides
-    @Singleton
-    fun provideTokenPreference(@ApplicationContext context: Context): TokenPreference {
-        return TokenPreference(context)
-    }
+//    @Provides
+//    @Singleton
+//    fun provideTokenPreference(@ApplicationContext context: Context): TokenPreference {
+//        return TokenPreference(context)
+//    }
 
     @Provides
     @Singleton
@@ -39,5 +40,14 @@ object RepositoryModule {
         @ApplicationContext context: Context // Tambahkan Context ke parameter
     ): DestinationRepository {
         return DestinationRepository(apiService, tokenPreference, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideStatsRepository(
+        apiService: ApiService,
+        tokenPreference: TokenPreference
+    ): StatsRepository {
+        return StatsRepository(apiService, tokenPreference)
     }
 }

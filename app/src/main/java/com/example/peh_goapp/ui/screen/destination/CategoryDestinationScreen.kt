@@ -1,5 +1,6 @@
 package com.example.peh_goapp.ui.screen.destination
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +41,12 @@ fun CategoryDestinationsScreen(
 ) {
     val context = LocalContext.current
     val isAdmin = remember { tokenPreference.isAdmin() }
+
+    // Handle back press dengan custom
+    BackHandler {
+        // Panggil callback navigasi kembali yang telah dimodifikasi
+        onNavigateBack()
+    }
 
     // Set category ID when the screen is composed
     LaunchedEffect(categoryId) {

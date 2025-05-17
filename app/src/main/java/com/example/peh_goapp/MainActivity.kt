@@ -1,6 +1,7 @@
 package com.example.peh_goapp
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,9 +20,13 @@ import com.example.peh_goapp.data.remote.api.Base64ImageService
 import com.example.peh_goapp.ui.screen.adddestination.AddDestinationScreen
 import com.example.peh_goapp.ui.screen.destination.CategoryDestinationsScreen
 import com.example.peh_goapp.ui.screen.destinationdetail.DestinationDetailScreen
+import com.example.peh_goapp.ui.screen.editdestination.EditDestinationScreen
+import com.example.peh_goapp.ui.screen.info.InfoScreen
 import com.example.peh_goapp.ui.screen.login.LoginScreen
 import com.example.peh_goapp.ui.screen.main.MainScreen
 import com.example.peh_goapp.ui.screen.register.RegisterScreen
+import com.example.peh_goapp.ui.screen.scanner.ScannerScreen
+import com.example.peh_goapp.ui.screen.scanresult.ScanResultScreen
 import com.example.peh_goapp.ui.theme.PEHGOAPPTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -44,10 +49,19 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+
+                    // Tentukan halaman awal berdasarkan status login
+                    val startDestination = if (tokenPreference.getToken().isNotBlank()) {
+                        "home"  // Jika token ada, langsung ke home
+                    } else {
+                        "login" // Jika tidak ada token, ke halaman login
+                    }
+
                     AppNavHost(
                         navController = navController,
                         tokenPreference = tokenPreference,
-                        base64ImageService = base64ImageService
+                        base64ImageService = base64ImageService,
+                        startDestination = startDestination
                     )
                 }
             }
@@ -60,11 +74,12 @@ fun AppNavHost(
     navController: NavHostController,
     tokenPreference: TokenPreference,
     base64ImageService: Base64ImageService,
+    startDestination: String,
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = startDestination,
         modifier = modifier
     ) {
         composable("login") {
@@ -107,6 +122,10 @@ fun AppNavHost(
                 },
                 onScannerClick = {
                     navController.navigate("scanner")
+                },
+                onNavigateToInformation = {
+                    Log.d("AppNavHost", "Memanggil navController.navigate('information')")
+                    navController.navigate("information")
                 }
             )
         }
@@ -120,7 +139,8 @@ fun AppNavHost(
             CategoryDestinationsScreen(
                 categoryId = categoryId,
                 onNavigateBack = {
-                    navController.navigateUp()
+                    // Pastikan kembali langsung ke home
+                    navController.popBackStack(route = "home", inclusive = false)
                 },
                 onDestinationClick = { destinationId ->
                     navController.navigate("destination/$categoryId/$destinationId")
@@ -147,7 +167,10 @@ fun AppNavHost(
             DestinationDetailScreen(
                 categoryId = categoryId,
                 destinationId = destinationId,
-                onNavigateBack = { navController.navigateUp() },
+                onNavigateBack = {
+                    // Kembali ke halaman kategori
+                    navController.popBackStack()
+                },
                 onEditClick = { catId, destId ->
                     navController.navigate("edit-destination/$catId/$destId")
                 },
@@ -164,21 +187,87 @@ fun AppNavHost(
             val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 1
             AddDestinationScreen(
                 categoryId = categoryId,
-                onNavigateBack = { navController.navigateUp() },
+                onNavigateBack = { navController.popBackStack() },
                 onSuccess = {
+                    // Pastikan navigasi kembali ke halaman kategori dan hapus halaman add dari stack
                     navController.navigate("category/$categoryId") {
-                        popUpTo("add-destination/$categoryId") { inclusive = true }
+                        popUpTo("category/$categoryId") { inclusive = true }
                     }
-                },
-                //tokenPreference = tokenPreference
+                }
             )
         }
 
+        // Route untuk halaman scanner QR code (BARU)
         composable("scanner") {
-            // TODO: Implementasi halaman scanner
-            // ScannerScreen(
-            //     onNavigateBack = { navController.navigateUp() }
-            // )
+            ScannerScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onScanSuccess = { categoryId, destinationId ->
+                    // Navigasi ke halaman hasil scan
+                    navController.navigate("scan-result/$categoryId/$destinationId")
+                }
+            )
+        }
+
+        // Route untuk halaman hasil scan QR code (BARU)
+        composable(
+            route = "scan-result/{categoryId}/{destinationId}",
+            arguments = listOf(
+                navArgument("categoryId") { type = NavType.IntType },
+                navArgument("destinationId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 1
+            val destinationId = backStackEntry.arguments?.getInt("destinationId") ?: 1
+
+            ScanResultScreen(
+                categoryId = categoryId,
+                destinationId = destinationId,
+                onNavigateBack = {
+                    // Kembali ke home
+                    navController.navigate("home") {
+                        popUpTo("scanner") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Route untuk halaman edit destinasi
+        composable(
+            route = "edit-destination/{categoryId}/{destinationId}",
+            arguments = listOf(
+                navArgument("categoryId") { type = NavType.IntType },
+                navArgument("destinationId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 1
+            val destinationId = backStackEntry.arguments?.getInt("destinationId") ?: 1
+            EditDestinationScreen(
+                categoryId = categoryId,
+                destinationId = destinationId,
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = {
+                    // Navigasi langsung ke halaman kategori setelah edit sukses
+                    // Dan hapus semua halaman sebelumnya kecuali home
+                    navController.navigate("category/$categoryId") {
+                        // Hapus semua destinasi di atas home dari back stack
+                        popUpTo("home") {
+                            // Jangan hapus home itu sendiri
+                            inclusive = false
+                            // Simpan state home
+                            saveState = true
+                        }
+                        // Pastikan kategori dimuat ulang sepenuhnya
+                        restoreState = false
+                        // Hindari duplikasi destinasi kategori
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable("information"){
+            InfoScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

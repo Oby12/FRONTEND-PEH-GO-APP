@@ -1,5 +1,6 @@
 package com.example.peh_goapp.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,10 +17,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.peh_goapp.R
+
+private const val TAG = "DrawerContent"
 
 data class DrawerItem(
     val title: String,
@@ -30,11 +35,15 @@ data class DrawerItem(
 
 @Composable
 fun DrawerContent(
+    userName: String,
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit,
     onCloseDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Debugging log untuk memastikan userName diterima dengan benar
+    Log.d(TAG, "DrawerContent dirender dengan userName: '$userName'")
+
     Box(
         modifier = modifier
             .width(280.dp)
@@ -52,21 +61,11 @@ fun DrawerContent(
             ) {
                 // Background image
                 Image(
-                    painter = painterResource(id = R.drawable.navigation_drawer_ilustration), // Use hiking/nature illustration
+                    painter = painterResource(id = R.drawable.navigation_drawer_ilustration),
                     contentDescription = "Header Image",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-
-                // Header with menu icon (not shown in drawer state)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Menu icon would be here in normal view
-                }
 
                 // App name
                 Text(
@@ -94,14 +93,22 @@ fun DrawerContent(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    // Tampilkan nama pengguna, gunakan nilai fallback jika kosong
+                    val displayName = if (userName.isNotBlank()) userName else "Pengguna"
+
                     Text(
-                        text = "Halo!! Ainun Istigomah Firmansyah",
+                        text = "Halo!! $displayName",
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        style = TextStyle(lineHeight = 24.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis  // Tambahkan overflow handling
                     )
+
                     Spacer(modifier = Modifier.height(2.dp))
+
                     Text(
-                        text = "have A Great Day",
+                        text = "Have A Great Day",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
@@ -118,7 +125,10 @@ fun DrawerContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = onLogout)
+                        .clickable {
+                            Log.d(TAG, "Tombol logout diklik")
+                            onLogout()
+                        }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -144,7 +154,11 @@ fun DrawerContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNavigate("information") }
+                        .clickable {
+                            Log.d(TAG, "Tombol information diklik")
+                            //onCloseDrawer()
+                            onNavigate("information")
+                        }
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -166,7 +180,7 @@ fun DrawerContent(
 
             // Bottom decoration (bridge illustration)
             Image(
-                painter = painterResource(id = R.drawable.logo_chamring), // Replace with your bridge illustration
+                painter = painterResource(id = R.drawable.logo_chamring),
                 contentDescription = "Bottom Decoration",
                 modifier = Modifier
                     .fillMaxWidth()
