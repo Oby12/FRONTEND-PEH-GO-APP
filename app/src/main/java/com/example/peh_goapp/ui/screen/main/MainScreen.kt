@@ -47,14 +47,14 @@ fun MainScreen(
     // Tambahkan state untuk menyimpan rute yang akan diakses setelah drawer ditutup
     var pendingNavigation by remember { mutableStateOf<String?>(null) }
 
-//    // Efek untuk menangani navigasi saat logout berhasil
-//    LaunchedEffect(uiState.logoutSuccess) {
-//        if (uiState.logoutSuccess) {
-//            // Reset state dan navigasi ke layar login
-//            viewModel.clearLogoutSuccess()
-//            onLogout()
-//        }
-//    }
+    // Efek untuk menangani navigasi saat logout berhasil
+    LaunchedEffect(uiState.logoutSuccess) {
+        if (uiState.logoutSuccess) {
+            // Reset state dan navigasi ke layar login
+            viewModel.clearLogoutSuccess()
+            onLogout()
+        }
+    }
     // Effect untuk memproses navigasi setelah drawer tertutup
     LaunchedEffect(drawerState.isClosed, pendingNavigation) {
         if (drawerState.isClosed && pendingNavigation != null) {

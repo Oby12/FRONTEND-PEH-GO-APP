@@ -156,7 +156,6 @@ fun DrawerContent(
                         .fillMaxWidth()
                         .clickable {
                             Log.d(TAG, "Tombol information diklik")
-                            //onCloseDrawer()
                             onNavigate("information")
                         }
                         .padding(vertical = 12.dp),

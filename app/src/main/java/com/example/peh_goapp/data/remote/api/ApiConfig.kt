@@ -9,7 +9,7 @@ import android.util.Log
 object ApiConfig {
     // Base URL dari API backend (pastikan selalu terbaru)
     // PENTING: Ganti dengan URL ngrok yang aktif
-    const val BASE_URL = "https://9eac-114-10-99-122.ngrok-free.app/"
+    const val BASE_URL = "https://58ef-114-10-99-91.ngrok-free.app/"
 
     /**
      * Method untuk mendapatkan URL lengkap gambar cover biasa

@@ -1,13 +1,13 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt")
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.example.peh_goapp"
-    compileSdk = 35
+    compileSdk = 34  // Turunkan ke 34
 
     defaultConfig {
         applicationId = "com.example.peh_goapp"
@@ -38,28 +38,25 @@ android {
         jvmTarget = "17"
     }
 
-    kotlin {
-        jvmToolchain(17)
-    }
-
     buildFeatures {
         compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+        kotlinCompilerExtensionVersion = "1.4.7"  // Sesuaikan dengan Kotlin 1.8.21
     }
 
     kapt {
-        javacOptions {
-            option("-Xmaxerrs", "500")
+        correctErrorTypes = true
+        arguments {
+            arg("kapt.use.worker.api", "false")
         }
     }
 }
 
 dependencies {
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2025.03.01"))
+    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -79,9 +76,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.5")
 
     // Hilt
-    implementation(libs.hilt.android.v249)
-    kapt(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose.v120)
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Retrofit & OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -97,21 +94,20 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Untuk akses media
-    implementation(libs.androidx.activity.compose.v190)
-    implementation(libs.androidx.activity.ktx)
+    implementation("androidx.activity:activity-compose:1.8.1")
+    implementation("androidx.activity:activity-ktx:1.8.1")
 
-    // Untuk pengelolaan gambar
-    implementation(libs.coil.kt.coil.compose)
+    // CameraX dan Barcode Scanning
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+    implementation("com.google.mlkit:barcode-scanning:17.1.0")
 
-    //testing
-    testImplementation(libs.hilt.navigation.compose.v120)
-
-    //camerax
-    // Tambahkan dependensi untuk camera dan barcode scanning
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
-    implementation(libs.barcode.scanning)
-    implementation(libs.accompanist.pager)
-    implementation(libs.accompanist.pager.indicators)
+    // Testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+// JUnit
+    testImplementation("junit:junit:4.13.2")
 }
