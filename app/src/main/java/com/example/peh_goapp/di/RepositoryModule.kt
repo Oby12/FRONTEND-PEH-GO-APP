@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
 import com.example.peh_goapp.data.repository.DestinationRepository
+import com.example.peh_goapp.data.repository.FavoriteRepository
 import com.example.peh_goapp.data.repository.StatsRepository
 import com.example.peh_goapp.data.repository.UserRepository
 import dagger.Module
@@ -50,4 +51,14 @@ object RepositoryModule {
     ): StatsRepository {
         return StatsRepository(apiService, tokenPreference)
     }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteRepository(
+        apiService: ApiService,
+        tokenPreference: TokenPreference
+    ): FavoriteRepository {
+        return FavoriteRepository(apiService, tokenPreference)
+    }
+
 }

@@ -7,5 +7,6 @@ data class DestinationModel(
     val description: String,
     val urlLocation: String,
     val coverUrl: String,
-    val pictures: List<PictureModel> = emptyList()
+    val pictures: List<PictureModel> = emptyList(),
+    val isFavorite: Boolean = false
 )

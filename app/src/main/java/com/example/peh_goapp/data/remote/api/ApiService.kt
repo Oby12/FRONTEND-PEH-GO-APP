@@ -155,4 +155,30 @@ interface ApiService {
         @Path("destinationId") destinationId: Int,
         @Header("Authorization") token: String
     ): Response<Map<String, String>>
+
+    /**
+     * Mendapatkan daftar destinasi favorit pengguna
+     */
+    @GET("users/favorites")
+    suspend fun getFavorites(
+        @Header("Authorization") token: String
+    ): Response<FavoritesResponse>
+
+    /**
+     * Toggle status favorit untuk sebuah destinasi
+     */
+    @POST("destinations/{destinationId}/favorite")
+    suspend fun toggleFavorite(
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String
+    ): Response<FavoriteToggleResponse>
+
+    /**
+     * Memeriksa apakah destinasi adalah favorit
+     */
+    @GET("destinations/{destinationId}/favorite")
+    suspend fun checkIsFavorite(
+        @Path("destinationId") destinationId: Int,
+        @Header("Authorization") token: String
+    ): Response<FavoriteStatusResponse>
 }

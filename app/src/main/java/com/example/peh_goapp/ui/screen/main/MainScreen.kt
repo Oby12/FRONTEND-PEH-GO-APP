@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,6 +36,7 @@ fun MainScreen(
     onCategoryClick: (Int) -> Unit,
     onScannerClick: () -> Unit,
     onNavigateToInformation: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -161,6 +163,20 @@ fun MainScreen(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Open Menu",
                         tint = Color.White
+                    )
+                }
+
+                // Tambahkan tombol favorit di pojok kanan atas
+                IconButton(
+                    onClick = onNavigateToFavorites,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = "Favorit Saya",
+                        tint = Color.Red
                     )
                 }
 

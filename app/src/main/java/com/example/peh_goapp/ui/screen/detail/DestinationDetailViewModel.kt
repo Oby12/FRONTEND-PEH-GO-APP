@@ -9,6 +9,7 @@ import com.example.peh_goapp.data.model.PictureModel
 import com.example.peh_goapp.data.remote.api.ApiResult
 import com.example.peh_goapp.data.remote.api.Base64ImageService
 import com.example.peh_goapp.data.repository.DestinationRepository
+import com.example.peh_goapp.data.repository.FavoriteRepository
 import com.example.peh_goapp.data.repository.StatsRepository // Tambahkan import ini
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,8 @@ data class DestinationDetailUiState(
     val pictures: List<PictureModel> = emptyList(),
     val pictureImages: Map<Int, Bitmap?> = emptyMap(),
     val isAdmin: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isFavorite: Boolean = false
 )
 
 @HiltViewModel
@@ -38,12 +40,49 @@ class DestinationDetailViewModel @Inject constructor(
     private val destinationRepository: DestinationRepository,
     private val base64ImageService: Base64ImageService,
     private val tokenPreference: TokenPreference,
-    private val statsRepository: StatsRepository // Tambahkan dependency ini
+    private val statsRepository: StatsRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
     private val TAG = "DestinationDetailVM"
 
     private val _uiState = MutableStateFlow(DestinationDetailUiState())
     val uiState: StateFlow<DestinationDetailUiState> = _uiState.asStateFlow()
+
+    fun toggleFavorite() {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Melakukan toggle favorit untuk destinasi ${_uiState.value.destinationId}")
+
+                when (val result = favoriteRepository.toggleFavorite(_uiState.value.destinationId)) {
+                    is ApiResult.Success -> {
+                        // Update state dengan status favorit baru
+                        _uiState.update {
+                            it.copy(
+                                isFavorite = result.data
+                            )
+                        }
+
+                        Log.d(TAG, "Toggle favorit berhasil, status baru: ${result.data}")
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = result.errorMessage
+                            )
+                        }
+                        Log.e(TAG, "Toggle favorit gagal: ${result.errorMessage}")
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Terjadi kesalahan: ${e.message}"
+                    )
+                }
+                Log.e(TAG, "Exception saat toggle favorit: ${e.message}", e)
+            }
+        }
+    }
 
     fun loadDestinationDetail(categoryId: Int, destinationId: Int) {
         _uiState.update {
@@ -54,6 +93,8 @@ class DestinationDetailViewModel @Inject constructor(
                 isAdmin = tokenPreference.isAdmin()
             )
         }
+
+
 
         viewModelScope.launch {
             try {
@@ -82,6 +123,9 @@ class DestinationDetailViewModel @Inject constructor(
 
                         // Catat view destinasi
                         recordDestinationView(destinationId)
+
+                        //periksa status favorite
+                        checkFavoriteStatus(destinationId)
                     }
                     is ApiResult.Error -> {
                         Log.e(TAG, "Error: ${result.errorMessage}")
@@ -104,6 +148,31 @@ class DestinationDetailViewModel @Inject constructor(
             }
         }
     }
+
+    // Fungsi baru untuk memeriksa status favorit
+    private fun checkFavoriteStatus(destinationId: Int) {
+        viewModelScope.launch {
+            try {
+                when (val result = favoriteRepository.checkIsFavorite(destinationId)) {
+                    is ApiResult.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isFavorite = result.data
+                            )
+                        }
+                        Log.d(TAG, "Status favorit untuk destinasi $destinationId: ${result.data}")
+                    }
+                    is ApiResult.Error -> {
+                        // Jangan tampilkan error jika gagal cek favorit
+                        Log.e(TAG, "Error checking favorite: ${result.errorMessage}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception checking favorite status: ${e.message}", e)
+            }
+        }
+    }
+
 
     // Fungsi untuk mencatat view destinasi
     private suspend fun recordDestinationView(destinationId: Int) {

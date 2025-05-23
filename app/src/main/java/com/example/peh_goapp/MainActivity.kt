@@ -21,6 +21,7 @@ import com.example.peh_goapp.ui.screen.adddestination.AddDestinationScreen
 import com.example.peh_goapp.ui.screen.destination.CategoryDestinationsScreen
 import com.example.peh_goapp.ui.screen.destinationdetail.DestinationDetailScreen
 import com.example.peh_goapp.ui.screen.editdestination.EditDestinationScreen
+import com.example.peh_goapp.ui.screen.favorite.FavoriteScreen
 import com.example.peh_goapp.ui.screen.info.InfoScreen
 import com.example.peh_goapp.ui.screen.login.LoginScreen
 import com.example.peh_goapp.ui.screen.main.MainScreen
@@ -126,6 +127,9 @@ fun AppNavHost(
                 onNavigateToInformation = {
                     Log.d("AppNavHost", "Memanggil navController.navigate('information')")
                     navController.navigate("information")
+                },
+                onNavigateToFavorites = {
+                    navController.navigate("favorites")
                 }
             )
         }
@@ -267,6 +271,19 @@ fun AppNavHost(
         composable("information"){
             InfoScreen(
                 onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        //halaman favorite
+        composable("favorites") {
+            FavoriteScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onDestinationClick = { destinationId ->
+                    // Default categoryId = 1 (Destination/Tour)
+                    navController.navigate("destination/1/$destinationId")
+                },
+                tokenPreference = tokenPreference,
+                base64ImageService = base64ImageService
             )
         }
     }
