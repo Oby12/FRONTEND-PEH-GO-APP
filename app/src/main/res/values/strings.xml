@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PEH-GO APP</string>
+    <string name="app_name">PEH-GO</string>
     <!-- Error Messages -->
     <string name="error_unknown">Terjadi kesalahan yang tidak diketahui</string>
     <string name="error_network">Terjadi masalah koneksi. Periksa koneksi internet Anda</string>
@@ -20,4 +20,26 @@
     <string name="error_email_invalid">Format email tidak valid</string>
     <string name="error_password_empty">Password tidak boleh kosong</string>
     <string name="error_password_too_short">Password minimal 6 karakter</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_loading">Memuat...</string>
+
+    <!-- Introduction -->
+    <string name="intro_skip">Skip</string>
+    <string name="intro_next">NEXT</string>
+    <string name="intro_start">START</string>
+
+    <!-- Introduction -->
+    <string name="intro_title_1">welcome to\nPEH-GO</string>
+    <string name="intro_desc_1">Temukan pesona Palembang dalam genggamanmu. Dari sejarah yang megah, kuliner menggoda, hingga destinasi tersembunyi yang menanti untuk dijelajahi! PEH-GO siap jadi teman wisatamu!</string>
+
+    <string name="intro_title_2">Explore Iconic &amp; Hidden Destinations</string>
+    <string name="intro_desc_2">Temukan pesona Palembang dari Jembatan Ampera hingga sudut kota yang jarang diketahui. Dengan PEH-GO, setiap langkahmu adalah cerita baru.</string>
+
+    <string name="intro_title_3">Ready to Explore Palembang?</string>
+    <string name="intro_desc_3">Waktunya mulai petualangan seru bersama PEH-GO. Dapatkan panduan, rekomendasi, dan inspirasi perjalanan semua dalam genggamanmu.</string>
+
+    <!-- Splash -->
+    <string name="app_tagline">Explore Palembang with Us</string>
+    <string name="app_version">Version 1.0.0</string>
 </resources>

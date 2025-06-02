@@ -25,9 +25,10 @@ class TokenPreference @Inject constructor(context: Context) {
     companion object {
         private const val KEY_TOKEN = "auth_token"
         private const val KEY_ROLE = "user_role"
-        private const val KEY_USERNAME = "user_username" // Kunci untuk username
-        private const val KEY_NAME = "user_name" // Kunci untuk nama lengkap
-        private const val KEY_EMAIL = "user_email" // Kunci untuk email
+        private const val KEY_USERNAME = "user_username"
+        private const val KEY_NAME = "user_name"
+        private const val KEY_EMAIL = "user_email"
+        private const val KEY_FIRST_TIME = "is_first_time" // Key baru untuk status introduction
     }
 
     fun saveToken(token: String) {
@@ -52,7 +53,6 @@ class TokenPreference @Inject constructor(context: Context) {
         return sharedPreferences.getString(KEY_ROLE, "") ?: ""
     }
 
-    // Fungsi untuk menyimpan username
     fun saveUsername(username: String) {
         sharedPreferences.edit().apply {
             putString(KEY_USERNAME, username)
@@ -60,12 +60,10 @@ class TokenPreference @Inject constructor(context: Context) {
         }
     }
 
-    // Fungsi untuk mendapatkan username
     fun getUsername(): String {
         return sharedPreferences.getString(KEY_USERNAME, "") ?: ""
     }
 
-    // Fungsi untuk menyimpan nama
     fun saveName(name: String) {
         sharedPreferences.edit().apply {
             putString(KEY_NAME, name)
@@ -73,12 +71,10 @@ class TokenPreference @Inject constructor(context: Context) {
         }
     }
 
-    // Fungsi untuk mendapatkan nama
     fun getName(): String {
         return sharedPreferences.getString(KEY_NAME, "") ?: ""
     }
 
-    // Fungsi untuk menyimpan email
     fun saveEmail(email: String) {
         sharedPreferences.edit().apply {
             putString(KEY_EMAIL, email)
@@ -86,13 +82,24 @@ class TokenPreference @Inject constructor(context: Context) {
         }
     }
 
-    // Fungsi untuk mendapatkan email
     fun getEmail(): String {
         return sharedPreferences.getString(KEY_EMAIL, "") ?: ""
     }
 
     fun isAdmin(): Boolean {
         return getRole() == "ADMIN"
+    }
+
+    // Fungsi baru untuk mengelola status introduction
+    fun isFirstTime(): Boolean {
+        return sharedPreferences.getBoolean(KEY_FIRST_TIME, true)
+    }
+
+    fun setNotFirstTime() {
+        sharedPreferences.edit().apply {
+            putBoolean(KEY_FIRST_TIME, false)
+            apply()
+        }
     }
 
     fun clearToken() {

@@ -46,7 +46,7 @@ fun MainScreen(
     // Dialog konfirmasi untuk logout
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // Tambahkan state untuk menyimpan rute yang akan diakses setelah drawer ditutup
+    // State untuk menyimpan rute yang akan diakses setelah drawer ditutup
     var pendingNavigation by remember { mutableStateOf<String?>(null) }
 
     // Efek untuk menangani navigasi saat logout berhasil
@@ -57,6 +57,7 @@ fun MainScreen(
             onLogout()
         }
     }
+
     // Effect untuk memproses navigasi setelah drawer tertutup
     LaunchedEffect(drawerState.isClosed, pendingNavigation) {
         if (drawerState.isClosed && pendingNavigation != null) {
@@ -103,17 +104,12 @@ fun MainScreen(
         drawerContent = {
             DrawerContent(
                 userName = uiState.userName,
+                isAdmin = uiState.isAdmin, // Kirim status admin ke DrawerContent
                 onNavigate = { route ->
                     pendingNavigation = route
                     scope.launch {
                         drawerState.close()
-//                        delay(300)
-//
-//                        when (route){
-//                            "information" -> onNavigateToInformation()
-//                        }
                     }
-                    // Handle navigation
                 },
                 onLogout = {
                     // Tutup drawer dan tampilkan dialog konfirmasi
@@ -244,7 +240,7 @@ fun MainScreen(
         }
     }
 
-    // PERBAIKAN: Error dialog hanya ditampilkan jika shouldShowError = true
+    // Error dialog hanya ditampilkan jika shouldShowError = true
     if (uiState.errorMessage != null && uiState.shouldShowError) {
         AlertDialog(
             onDismissRequest = { viewModel.clearError() },

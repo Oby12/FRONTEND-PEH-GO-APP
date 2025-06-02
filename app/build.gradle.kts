@@ -110,4 +110,7 @@ dependencies {
     androidTestImplementation("androidx.test:rules:1.5.0")
 // JUnit
     testImplementation("junit:junit:4.13.2")
+
+    //lottie
+    implementation(libs.lottie.compose)
 }

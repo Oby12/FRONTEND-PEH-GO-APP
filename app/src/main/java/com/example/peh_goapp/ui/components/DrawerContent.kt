@@ -36,13 +36,14 @@ data class DrawerItem(
 @Composable
 fun DrawerContent(
     userName: String,
+    isAdmin: Boolean, // Parameter baru untuk mengecek role admin
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit,
     onCloseDrawer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Debugging log untuk memastikan userName diterima dengan benar
-    Log.d(TAG, "DrawerContent dirender dengan userName: '$userName'")
+    // Debugging log untuk memastikan userName dan isAdmin diterima dengan benar
+    Log.d(TAG, "DrawerContent dirender dengan userName: '$userName', isAdmin: $isAdmin")
 
     Box(
         modifier = modifier
@@ -102,7 +103,7 @@ fun DrawerContent(
                         fontSize = 16.sp,
                         style = TextStyle(lineHeight = 24.sp),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis  // Tambahkan overflow handling
+                        overflow = TextOverflow.Ellipsis
                     )
 
                     Spacer(modifier = Modifier.height(2.dp))
@@ -150,28 +151,33 @@ fun DrawerContent(
                     color = Color.LightGray
                 )
 
-                // Information option with icon
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            Log.d(TAG, "Tombol information diklik")
-                            onNavigate("information")
-                        }
-                        .padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "Information",
-                        tint = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "INFORMATION",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                // Information option with icon - HANYA TAMPIL UNTUK ADMIN
+                if (isAdmin) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                Log.d(TAG, "Tombol information diklik (Admin)")
+                                onNavigate("information")
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Information",
+                            tint = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "INFORMATION",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                } else {
+                    // Log untuk debugging bahwa menu information tidak ditampilkan untuk non-admin
+                    Log.d(TAG, "Menu Information tidak ditampilkan - User bukan admin")
                 }
             }
 

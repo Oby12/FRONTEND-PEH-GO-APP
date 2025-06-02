@@ -24,9 +24,10 @@ data class MainScreenState(
     val categories: List<CategoryModel> = emptyList(),
     val isDrawerOpen: Boolean = false,
     val userName: String = "",
+    val isAdmin: Boolean = false, // Tambahkan field untuk status admin
     val errorMessage: String? = null,
     val logoutSuccess: Boolean = false,
-    // PERBAIKAN: tambahkan flag untuk menentukan apakah error perlu ditampilkan
+    // Flag untuk menentukan apakah error perlu ditampilkan
     val shouldShowError: Boolean = true
 )
 
@@ -52,18 +53,25 @@ class MainViewModel @Inject constructor(
         val username = tokenPreference.getUsername()
         val email = tokenPreference.getEmail()
         val role = tokenPreference.getRole()
+        val isAdmin = tokenPreference.isAdmin() // Ambil status admin
 
         Log.d(TAG, "Token: ${if(token.isBlank()) "TIDAK ADA" else "${token.take(10)}..."}")
         Log.d(TAG, "Nama tersimpan: '$name'")
         Log.d(TAG, "Username tersimpan: '$username'")
         Log.d(TAG, "Email tersimpan: '$email'")
         Log.d(TAG, "Role tersimpan: '$role'")
+        Log.d(TAG, "Is Admin: $isAdmin") // Log status admin
 
         // Mendapatkan nama pengguna dari repository (dengan fallback)
         val userName = userRepository.getUserName()
         Log.d(TAG, "Hasil getUserName(): '$userName'")
 
-        _uiState.update { it.copy(userName = userName) }
+        _uiState.update {
+            it.copy(
+                userName = userName,
+                isAdmin = isAdmin // Update state dengan status admin
+            )
+        }
     }
 
     private fun loadBanners() {
@@ -146,7 +154,6 @@ class MainViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 logoutSuccess = true,
-                                // PERBAIKAN: Jangan tampilkan error pada kasus sukses
                                 errorMessage = null,
                                 shouldShowError = false
                             )
@@ -155,16 +162,11 @@ class MainViewModel @Inject constructor(
                     is com.example.peh_goapp.data.remote.api.ApiResult.Error -> {
                         Log.e(TAG, "Logout error: ${result.errorMessage}")
 
-                        // PERBAIKAN: Set errorMessage tapi jangan tampilkan jika logout lokal berhasil
-                        // (UserRepository seharusnya sudah menangani ini)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                // Simpan error, tapi tidak perlu menampilkannya ke user
                                 errorMessage = result.errorMessage,
-                                // Tetap anggap sukses, karena logout lokal berhasil
                                 logoutSuccess = true,
-                                // PERBAIKAN: Jangan tampilkan error
                                 shouldShowError = false
                             )
                         }
@@ -173,7 +175,6 @@ class MainViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Exception saat logout: ${e.message}", e)
 
-                // PERBAIKAN: Bahkan jika ada exception, logout lokal tetap berhasil
                 _uiState.update {
                     it.copy(
                         isLoading = false,

@@ -23,11 +23,13 @@ import com.example.peh_goapp.ui.screen.destinationdetail.DestinationDetailScreen
 import com.example.peh_goapp.ui.screen.editdestination.EditDestinationScreen
 import com.example.peh_goapp.ui.screen.favorite.FavoriteScreen
 import com.example.peh_goapp.ui.screen.info.InfoScreen
+import com.example.peh_goapp.ui.screen.introduction.IntroductionScreen
 import com.example.peh_goapp.ui.screen.login.LoginScreen
 import com.example.peh_goapp.ui.screen.main.MainScreen
 import com.example.peh_goapp.ui.screen.register.RegisterScreen
 import com.example.peh_goapp.ui.screen.scanner.ScannerScreen
 import com.example.peh_goapp.ui.screen.scanresult.ScanResultScreen
+import com.example.peh_goapp.ui.screen.splash.SplashScreen
 import com.example.peh_goapp.ui.theme.PEHGOAPPTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -51,18 +53,12 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    // Tentukan halaman awal berdasarkan status login
-                    val startDestination = if (tokenPreference.getToken().isNotBlank()) {
-                        "home"  // Jika token ada, langsung ke home
-                    } else {
-                        "login" // Jika tidak ada token, ke halaman login
-                    }
-
+                    // Selalu mulai dari splash screen
                     AppNavHost(
                         navController = navController,
                         tokenPreference = tokenPreference,
                         base64ImageService = base64ImageService,
-                        startDestination = startDestination
+                        startDestination = "splash"
                     )
                 }
             }
@@ -83,6 +79,38 @@ fun AppNavHost(
         startDestination = startDestination,
         modifier = modifier
     ) {
+        // Splash Screen - selalu menjadi entry point pertama
+        composable("splash") {
+            SplashScreen(
+                onNavigateToIntroduction = {
+                    navController.navigate("introduction") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate("home") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Introduction Screen - hanya ditampilkan pada first time
+        composable("introduction") {
+            IntroductionScreen(
+                onFinishIntroduction = {
+                    navController.navigate("login") {
+                        popUpTo("introduction") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
@@ -201,7 +229,7 @@ fun AppNavHost(
             )
         }
 
-        // Route untuk halaman scanner QR code (BARU)
+        // Route untuk halaman scanner QR code
         composable("scanner") {
             ScannerScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -212,7 +240,7 @@ fun AppNavHost(
             )
         }
 
-        // Route untuk halaman hasil scan QR code (BARU)
+        // Route untuk halaman hasil scan QR code
         composable(
             route = "scan-result/{categoryId}/{destinationId}",
             arguments = listOf(
@@ -268,6 +296,7 @@ fun AppNavHost(
                 }
             )
         }
+
         composable("information"){
             InfoScreen(
                 onNavigateBack = { navController.popBackStack() },
