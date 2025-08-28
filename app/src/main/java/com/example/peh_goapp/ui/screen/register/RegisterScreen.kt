@@ -138,7 +138,7 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = uiState.name,
                         onValueChange = { viewModel.updateName(it) },
-                        placeholder = { Text("create your name") },
+                        placeholder = { Text("enter your name") },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = {
                             Icon(
@@ -170,7 +170,7 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = uiState.email,
                         onValueChange = { viewModel.updateEmail(it) },
-                        placeholder = { Text("enter your email address") },
+                        placeholder = { Text("your email address") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.Email,

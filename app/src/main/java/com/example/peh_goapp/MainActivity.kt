@@ -26,6 +26,9 @@ import com.example.peh_goapp.ui.screen.info.InfoScreen
 import com.example.peh_goapp.ui.screen.introduction.IntroductionScreen
 import com.example.peh_goapp.ui.screen.login.LoginScreen
 import com.example.peh_goapp.ui.screen.main.MainScreen
+import com.example.peh_goapp.ui.screen.other.AddOtherScreen
+import com.example.peh_goapp.ui.screen.other.OtherDetailScreen
+import com.example.peh_goapp.ui.screen.other.OtherScreen
 import com.example.peh_goapp.ui.screen.register.RegisterScreen
 import com.example.peh_goapp.ui.screen.scanner.ScannerScreen
 import com.example.peh_goapp.ui.screen.scanresult.ScanResultScreen
@@ -158,6 +161,10 @@ fun AppNavHost(
                 },
                 onNavigateToFavorites = {
                     navController.navigate("favorites")
+                },
+                onNavigateToOther = {
+                    Log.d("AppNavHost", "Memanggil navController.navigate('other')")
+                    navController.navigate("other")
                 }
             )
         }
@@ -230,12 +237,17 @@ fun AppNavHost(
         }
 
         // Route untuk halaman scanner QR code
-        composable("scanner") {
-            ScannerScreen(
+        composable(
+            "other_detail/{otherId}",
+            arguments = listOf(navArgument("otherId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val otherId = backStackEntry.arguments?.getInt("otherId") ?: 0
+            OtherDetailScreen(
+                otherId = otherId,
                 onNavigateBack = { navController.popBackStack() },
-                onScanSuccess = { categoryId, destinationId ->
-                    // Navigasi ke halaman hasil scan
-                    navController.navigate("scan-result/$categoryId/$destinationId")
+                onDeleteSuccess = {
+                    navController.popBackStack()
+                    navController.popBackStack() // Back to Other list
                 }
             )
         }
@@ -313,6 +325,41 @@ fun AppNavHost(
                 },
                 tokenPreference = tokenPreference,
                 base64ImageService = base64ImageService
+            )
+        }
+
+        // Tambahkan routes untuk Other
+        composable("other") {
+            OtherScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddOther = { navController.navigate("add_other") },
+                onNavigateToOtherDetail = { otherId ->
+                    navController.navigate("other_detail/$otherId")
+                }
+            )
+        }
+
+        // Route untuk halaman detail Other
+        composable(
+            "other_detail/{otherId}",
+            arguments = listOf(navArgument("otherId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val otherId = backStackEntry.arguments?.getInt("otherId") ?: 0
+            OtherDetailScreen(
+                otherId = otherId,
+                onNavigateBack = { navController.popBackStack() },
+                onDeleteSuccess = {
+                    navController.popBackStack()
+                    navController.popBackStack() // Back to Other list
+                }
+            )
+        }
+
+        // Route untuk halaman tambah Other
+        composable("add_other") {
+            AddOtherScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
     }

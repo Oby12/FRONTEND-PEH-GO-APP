@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -377,6 +378,72 @@ fun AddDestinationScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
+
+                // YouTube URL Field - Tambahkan setelah URL Location field
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "URL Video YouTube (Opsional)",
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    textAlign = TextAlign.Left
+                )
+
+                OutlinedTextField(
+                    value = uiState.youtubeUrl,
+                    onValueChange = { viewModel.updateYoutubeUrl(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            "Contoh: https://youtube.com/watch?v=xxxxx",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    },
+                    isError = uiState.youtubeUrlError != null,
+                    singleLine = false,
+                    maxLines = 2,
+                    shape = RoundedCornerShape(8.dp),
+//                    leadingIcon = {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.ic_youtube), // Tambahkan icon YouTube
+//                            contentDescription = "YouTube",
+//                            tint = if (uiState.youtubeUrlError != null)
+//                                MaterialTheme.colorScheme.error
+//                            else
+//                                Color.Red,
+//                            modifier = Modifier.size(24.dp)
+//                        )
+//                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = Color.Gray,
+                        focusedBorderColor = Color.Black,
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White
+                    )
+                )
+
+                if (uiState.youtubeUrlError != null) {
+                    Text(
+                        text = uiState.youtubeUrlError ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp)
+                    )
+                }
+
+                // Helper text untuk YouTube URL
+                Text(
+                    text = "Masukkan link video YouTube tentang destinasi ini. Video akan ditampilkan di halaman detail.",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+
 
                 // Save button
                 Button(

@@ -8,7 +8,10 @@ data class DestinationDetailModel(
     val urlLocation: String,
     val coverUrl: String,
     val categoryName: String,
-    val pictures: List<PictureModel>
+    val pictures: List<PictureModel>,
+    val youtubeUrl: String? = null,
+    val youtubeEmbedUrl: String? = null
+
 )
 
 data class PictureModel(

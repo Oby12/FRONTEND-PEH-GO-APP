@@ -421,6 +421,58 @@ fun EditDestinationScreen(
                         )
                     }
 
+                    // YouTube URL field
+                    Text(
+                        text = "URL Video YouTube (Opsional)",
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = TextAlign.Left
+                    )
+
+                    OutlinedTextField(
+                        value = uiState.youtubeUrl,
+                        onValueChange = { viewModel.updateYoutubeUrl(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                "Contoh: https://youtube.com/watch?v=xxxxx",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        },
+                        isError = uiState.youtubeUrlError != null,
+                        singleLine = false,
+                        maxLines = 2,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color.Gray,
+                            focusedBorderColor = Color.Black,
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        )
+                    )
+
+                    if (uiState.youtubeUrlError != null) {
+                        Text(
+                            text = uiState.youtubeUrlError ?: "",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                        )
+                    }
+
+                    // Helper text untuk YouTube URL
+                    Text(
+                        text = "Masukkan link video YouTube tentang destinasi ini",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+
                     Spacer(modifier = Modifier.height(32.dp))
 
                     // Save button

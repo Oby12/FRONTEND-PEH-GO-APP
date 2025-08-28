@@ -179,6 +179,29 @@ fun DrawerContent(
                     // Log untuk debugging bahwa menu information tidak ditampilkan untuk non-admin
                     Log.d(TAG, "Menu Information tidak ditampilkan - User bukan admin")
                 }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            Log.d(TAG, "Tombol Other diklik")
+                            onNavigate("other")
+                        }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Category, // atau icon lain yang sesuai
+                        contentDescription = "Other",
+                        tint = Color.Black
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "OTHER",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))

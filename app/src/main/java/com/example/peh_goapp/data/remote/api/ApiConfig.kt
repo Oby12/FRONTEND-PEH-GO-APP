@@ -4,17 +4,14 @@ import android.util.Log
 
 /**
  * Konfigurasi API dan URL untuk aplikasi
- * Menyediakan konstanta dan helper method untuk URL API
  */
 object ApiConfig {
-    // Base URL dari API backend (pastikan selalu terbaru)
-    // PENTING: Ganti dengan URL ngrok yang aktif
-    const val BASE_URL = "https://044a-114-10-98-225.ngrok-free.app/"
+
+    const val BASE_URL = "https://3aa27ba53912.ngrok-free.app/"
 
     /**
      * Method untuk mendapatkan URL lengkap gambar cover biasa
      * @param destinationId ID dari destinasi
-     * @return URL lengkap untuk mengakses gambar cover
      */
     fun getCoverImageUrl(destinationId: Int): String {
         val url = "${BASE_URL}api/images/covers/$destinationId"
@@ -25,7 +22,6 @@ object ApiConfig {
     /**
      * Method untuk mendapatkan URL lengkap gambar cover base64
      * @param destinationId ID dari destinasi
-     * @return URL lengkap untuk mengakses gambar cover base64
      */
     fun getBase64CoverImageUrl(destinationId: Int): String {
         val url = "${BASE_URL}api/images/base64/covers/$destinationId"

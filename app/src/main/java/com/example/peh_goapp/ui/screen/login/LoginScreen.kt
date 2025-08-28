@@ -106,7 +106,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = uiState.email,
                         onValueChange = { viewModel.updateEmail(it) },
-                        placeholder = { Text("enter your email address") },
+                        placeholder = { Text("your email address") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.Email,
@@ -139,7 +139,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = uiState.password,
                         onValueChange = { viewModel.updatePassword(it) },
-                        placeholder = { Text("enter your password") },
+                        placeholder = { Text("your password") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.Lock,

@@ -76,7 +76,10 @@ class DestinationRepository @Inject constructor(
                             urlLocation = destinationDetail.urlLocation,
                             coverUrl = destinationDetail.coverUrl,
                             categoryName = destinationDetail.Category.name,
-                            pictures = pictures
+                            pictures = pictures,
+                            youtubeUrl = destinationDetail.youtubeUrl,
+                            youtubeEmbedUrl = destinationDetail.youtubeEmbedUrl
+
                         )
                     )
                 } else {
@@ -183,6 +186,7 @@ class DestinationRepository @Inject constructor(
         description: String,
         urlLocation: String,
         coverImageUri: Uri,
+        youtubeUrl: String?,
         pictureImageUris: List<Uri>?
     ): ApiResult<DestinationModel> = withContext(Dispatchers.IO) {
         try {

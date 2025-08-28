@@ -3,6 +3,7 @@ package com.example.peh_goapp.di
 import android.content.Context
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
+import com.example.peh_goapp.data.remote.api.OtherApiService
 import com.example.peh_goapp.util.ResourceProvider
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -59,5 +60,11 @@ object AppModule {
     @Singleton
     fun provideResourceProvider(@ApplicationContext context: Context): ResourceProvider {
         return ResourceProvider(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOtherApiService(retrofit: Retrofit): OtherApiService {
+        return retrofit.create(OtherApiService::class.java)
     }
 }

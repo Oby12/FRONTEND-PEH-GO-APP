@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.peh_goapp"
-    compileSdk = 34  // Turunkan ke 34
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.peh_goapp"
@@ -43,7 +43,8 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.7"  // Sesuaikan dengan Kotlin 1.8.21
+        // Update ke versi yang kompatibel dengan Kotlin 1.8.21
+        kotlinCompilerExtensionVersion = "1.4.8"
     }
 
     kapt {
@@ -55,19 +56,32 @@ android {
 }
 
 dependencies {
-    // Compose
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
+    // Compose - Update ke BOM terbaru yang kompatibel
+    val composeBom = platform("androidx.compose:compose-bom:2023.10.01")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    // Compose dependencies (tanpa versi eksplisit, mengikuti BOM)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Material Icons Extended - tanpa versi eksplisit untuk mengikuti BOM
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // Compose Animation - tambahkan eksplisit untuk memastikan kompatibilitas
+    implementation("androidx.compose.animation:animation")
+    implementation("androidx.compose.animation:animation-core")
 
     // AndroidX Core & Lifecycle
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
     // Encrypted Shared Preferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
@@ -103,14 +117,23 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.0")
     implementation("com.google.mlkit:barcode-scanning:17.1.0")
 
+    // QR Code Generation (tambahkan jika belum ada)
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.1")
+
+    // Canvas untuk drawing overlay scanner
+    implementation("androidx.compose.foundation:foundation")
+
     // Testing
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
-// JUnit
     testImplementation("junit:junit:4.13.2")
 
-    //lottie
-    implementation(libs.lottie.compose)
+    // Lottie untuk animasi
+    implementation("com.airbnb.android:lottie-compose:5.2.0")
+
+    // WebView
+    implementation("androidx.webkit:webkit:1.8.0")
 }

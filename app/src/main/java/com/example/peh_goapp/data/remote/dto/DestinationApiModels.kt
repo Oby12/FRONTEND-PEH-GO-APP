@@ -33,6 +33,8 @@ data class DestinationDetailDto(
     val address: String,
     val description: String,
     val urlLocation: String,
+    val youtubeUrl: String? = null,
+    val youtubeEmbedUrl: String? = null,
     val coverUrl: String,
     val Category: CategoryDto,
     val picture: List<PictureDto>

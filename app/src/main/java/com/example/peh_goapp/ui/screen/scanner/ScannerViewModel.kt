@@ -26,8 +26,10 @@ data class ScannerUiState(
  * Data yang diuraikan dari QR code
  */
 data class ParsedQrData(
-    val categoryId: Int,
-    val destinationId: Int
+    val categoryId: Int? = null,
+    val destinationId: Int? = null,
+    val otherId: Int? = null, // ADD THIS FIELD
+    val type: String // "destination" atau "other"
 )
 
 /**
@@ -58,51 +60,81 @@ class ScannerViewModel @Inject constructor() : ViewModel() {
      * Memproses hasil scan QR code
      * Format QR code: pehgo://destination/{categoryId}/{destinationId}
      */
+    // Update processScanResult method
+// UPDATE processScanResult method
     fun processScanResult(result: String) {
-        Log.d(TAG, "Processing scan result: $result")
-        _uiState.update { it.copy(scanResult = result) }
+        if (uiState.value.parsedData != null) {
+            Log.d(TAG, "Hasil scan sudah diproses, mengabaikan pindaian baru.")
+            return
+        }
+
+        Log.d(TAG, "Memproses hasil scan: $result")
 
         try {
-            val pattern = Pattern.compile("pehgo://destination/(\\d+)/(\\d+)")
-            val matcher = pattern.matcher(result)
+            val parsedData = when {
+                // Format untuk destinasi: pehgo://destination/{categoryId}/{destinationId}
+                result.startsWith("pehgo://destination/") -> {
+                    val parts = result.removePrefix("pehgo://destination/").split("/")
+                    if (parts.size == 2) {
+                        val categoryId = parts[0].toIntOrNull()
+                        val destinationId = parts[1].toIntOrNull()
 
-            if (matcher.find()) {
-                val categoryId = matcher.group(1)?.toIntOrNull()
-                val destinationId = matcher.group(2)?.toIntOrNull()
-
-                if (categoryId != null && destinationId != null) {
-                    Log.d(TAG, "Parsed QR data: categoryId=$categoryId, destinationId=$destinationId")
-                    _uiState.update {
-                        it.copy(
-                            parsedData = ParsedQrData(categoryId, destinationId),
-                            errorMessage = null
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            errorMessage = "QR code tidak valid",
-                            parsedData = null
-                        )
-                    }
+                        if (categoryId != null && destinationId != null) {
+                            ParsedQrData(
+                                categoryId = categoryId,
+                                destinationId = destinationId,
+                                type = "destination"
+                            )
+                        } else null
+                    } else null
                 }
+
+                // FORMAT UNTUK OTHER: pehgo://other/{otherId}
+                result.startsWith("pehgo://other/") -> {
+                    val otherIdStr = result.removePrefix("pehgo://other/")
+                    val otherId = otherIdStr.toIntOrNull()
+
+                    if (otherId != null) {
+                        ParsedQrData(
+                            otherId = otherId,
+                            type = "other"
+                        )
+                    } else null
+                }
+
+                else -> null
+            }
+
+            if (parsedData != null) {
+                _uiState.update {
+                    it.copy(
+                        scanResult = result,
+                        parsedData = parsedData,
+                        errorMessage = null
+                    )
+                }
+                Log.d(TAG, "QR code berhasil diuraikan: $parsedData")
             } else {
                 _uiState.update {
                     it.copy(
-                        errorMessage = "Format QR code tidak dikenali",
-                        parsedData = null
+                        errorMessage = "Format QR code tidak valid"
                     )
                 }
+                Log.e(TAG, "Format QR code tidak valid: $result")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing QR data: ${e.message}")
+            Log.e(TAG, "Error saat menguraikan QR code: ${e.message}")
             _uiState.update {
                 it.copy(
-                    errorMessage = "Error: ${e.message}",
-                    parsedData = null
+                    errorMessage = "Error: ${e.message}"
                 )
             }
         }
+    }
+
+    // ADD MISSING clearError METHOD
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     /**

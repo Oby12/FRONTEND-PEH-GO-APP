@@ -42,4 +42,13 @@
     <!-- Splash -->
     <string name="app_tagline">Explore Palembang with Us</string>
     <string name="app_version">Version 1.0.0</string>
+
+    <!--YOutube VIdeo-->
+    <string name="youtube_url_label">URL Video YouTube (Opsional)</string>
+    <string name="youtube_url_placeholder">Contoh: https://youtube.com/watch?v=xxxxx</string>
+    <string name="youtube_url_helper">Masukkan link video YouTube tentang destinasi ini. Video akan ditampilkan di halaman detail.</string>
+    <string name="youtube_url_error">Format URL YouTube tidak valid. Gunakan: youtube.com/watch?v=... atau youtu.be/...</string>
+    <string name="video_section_title">Video Destinasi</string>
+    <string name="tap_to_play">Ketuk untuk memutar video</string>
+    <string name="open_in_youtube">Buka di YouTube</string>
 </resources>

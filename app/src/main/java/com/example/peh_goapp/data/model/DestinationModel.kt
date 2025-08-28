@@ -8,5 +8,7 @@ data class DestinationModel(
     val urlLocation: String,
     val coverUrl: String,
     val pictures: List<PictureModel> = emptyList(),
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val youtubeUrl: String? = null,
+    val youtubeEmbedUrl: String? = null
 )

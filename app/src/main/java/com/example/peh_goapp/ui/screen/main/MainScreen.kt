@@ -37,6 +37,7 @@ fun MainScreen(
     onScannerClick: () -> Unit,
     onNavigateToInformation: () -> Unit,
     onNavigateToFavorites: () -> Unit,
+    onNavigateToOther: () -> Unit, // TAMBAHAN BARU
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -67,6 +68,10 @@ fun MainScreen(
                 "information" -> {
                     onNavigateToInformation()
                     Log.d("MainScreen", "Memanggil onNavigateToInformation()")
+                }
+                "other" -> { // TAMBAHAN BARU
+                    onNavigateToOther()
+                    Log.d("MainScreen", "Memanggil onNavigateToOther()")
                 }
             }
 

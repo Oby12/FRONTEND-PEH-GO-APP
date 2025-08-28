@@ -2,6 +2,8 @@ package com.example.peh_goapp.ui.screen.scanner
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -16,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,6 +49,7 @@ import java.util.concurrent.Executors
 fun ScannerScreen(
     onNavigateBack: () -> Unit,
     onScanSuccess: (Int, Int) -> Unit,
+    onOtherScanSuccess: ((Int) -> Unit)? = null,
     viewModel: ScannerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -61,10 +66,7 @@ fun ScannerScreen(
     // Cek izin kamera saat layar dibuka
     LaunchedEffect(Unit) {
         when (PackageManager.PERMISSION_GRANTED) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) -> {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) -> {
                 viewModel.setCameraPermission(true)
             }
             else -> {
@@ -73,11 +75,32 @@ fun ScannerScreen(
         }
     }
 
-    // Navigasi ke result screen ketika scan berhasil
-    LaunchedEffect(uiState.parsedData) {
+    // FIX: Handle scan success navigation properly
+    LaunchedEffect(uiState.parsedData) { // Use uiState.parsedData instead of just parsedData
         uiState.parsedData?.let { data ->
-            onScanSuccess(data.categoryId, data.destinationId)
-            viewModel.resetScan()
+            when (data.type) {
+                "destination" -> {
+                    if (data.categoryId != null && data.destinationId != null) {
+                        onScanSuccess(data.categoryId, data.destinationId)
+                    }
+                }
+                "other" -> {
+                    if (data.otherId != null) {
+                        onOtherScanSuccess?.invoke(data.otherId)
+                    }
+                }
+            }
+        }
+    }
+
+    // Handle error messages
+    uiState.errorMessage?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            // Show toast for error
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            // Auto clear error after showing toast
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearError()
         }
     }
 
@@ -116,77 +139,49 @@ fun ScannerScreen(
                         isTorchEnabled = uiState.isTorchOn
                     )
 
-                    // Overlay scanline
-                    Box(
-                        modifier = Modifier
-                            .size(300.dp)
-                            .align(Alignment.Center)
-                            .clip(RoundedCornerShape(20.dp))
-                            .border(
-                                width = 2.dp,
-                                color = Color(0xFF4CAF50),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                    )
-
-                    // Instruksi
-                    Text(
-                        text = "Arahkan kamera ke QR Code destinasi",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 24.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.6f),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
-                    // Flash toggle button
-                    IconButton(
-                        onClick = { viewModel.toggleTorch() },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 32.dp)
-                            .size(56.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.6f),
-                                shape = CircleShape
-                            )
+                    // Overlay UI
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // Menggunakan resource drawable untuk menggantikan Icons.Default.FlashOn/FlashOff
-                        Icon(
-                            painter = painterResource(
-                                id = if (uiState.isTorchOn) R.drawable.ic_flash_off
-                                else R.drawable.ic_flash_on
-                            ),
-                            contentDescription = "Toggle Flash",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    // Error message
-                    if (uiState.errorMessage != null) {
+                        // Top instruction
                         Card(
                             modifier = Modifier
-                                .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
                                 .padding(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color.Red.copy(alpha = 0.8f)
-                            )
+                                containerColor = Color.Black.copy(alpha = 0.7f)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                text = uiState.errorMessage!!,
+                                text = "Arahkan kamera ke QR Code untuk memindai",
+                                modifier = Modifier.padding(16.dp),
                                 color = Color.White,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center
                             )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        // Control buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            // Torch toggle button
+                            FloatingActionButton(
+                                onClick = { viewModel.toggleTorch() },
+                                containerColor = if (uiState.isTorchOn) Color.Yellow else Color.Gray
+                            ) {
+                                Icon(
+                                    imageVector = if (uiState.isTorchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                                    contentDescription = "Flash",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
                 }
@@ -220,6 +215,8 @@ fun ScannerScreen(
         }
     }
 }
+
+// Keep existing CameraPreview composable as is...
 
 /**
  * Camera preview untuk memindai QR code

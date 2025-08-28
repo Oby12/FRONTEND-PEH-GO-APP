@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.webkit.WebView
+import android.webkit.WebViewClient
 
 /**
  * State untuk layar tambah destinasi
@@ -28,6 +30,8 @@ data class AddDestinationUiState(
     val addressError: String? = null,
     val descriptionError: String? = null,
     val urlLocationError: String? = null,
+    val youtubeUrl: String = "", // Field baru
+    val youtubeUrlError: String? = null, // Field baru untuk error
     val coverError: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -44,6 +48,69 @@ class AddDestinationViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AddDestinationUiState())
     val uiState: StateFlow<AddDestinationUiState> = _uiState.asStateFlow()
+
+    fun updateYoutubeUrl(url: String) {
+        _uiState.value = _uiState.value.copy(
+            youtubeUrl = url,
+            youtubeUrlError = validateYoutubeUrl(url)
+        )
+    }
+
+    private fun validateYoutubeUrl(url: String): String? {
+        return when {
+            url.isNotEmpty() && !isValidYoutubeUrl(url) ->
+                "Format URL YouTube tidak valid. Gunakan: youtube.com/watch?v=... atau youtu.be/..."
+            else -> null
+        }
+    }
+
+    private fun isValidYoutubeUrl(url: String): Boolean {
+        val patterns = listOf(
+            "^(https?://)?(www\\.)?(youtube\\.com/(watch\\?v=|embed/)|youtu\\.be/)\\S+$",
+            "^[\\w-]{11}$" // Just YouTube video ID
+        )
+        return patterns.any { pattern ->
+            Regex(pattern).matches(url)
+        }
+    }
+
+//    fun submitDestination() {
+//        viewModelScope.launch {
+//            // Validasi semua field
+//            val hasError = validateAllFields()
+//            if (hasError) return@launch
+//
+//            _uiState.value = _uiState.value.copy(isLoading = true)
+//
+//            try {
+//                // Prepare multipart data dengan YouTube URL
+//                val result = repository.addDestination(
+//                    categoryId = _uiState.value.categoryId,
+//                    name = _uiState.value.name,
+//                    address = _uiState.value.address,
+//                    description = _uiState.value.description,
+//                    urlLocation = _uiState.value.urlLocation,
+//                    youtubeUrl = _uiState.value.youtubeUrl.ifEmpty { null },
+//                    coverImageUri = _uiState.value.coverImageUri!!,
+//                    pictureUris = _uiState.value.pictureUris
+//                )
+//
+//                _uiState.value = _uiState.value.copy(
+//                    isLoading = false,
+//                    isSuccess = true
+//                )
+//            } catch (e: Exception) {
+//                _uiState.value = _uiState.value.copy(
+//                    isLoading = false,
+//                    errorMessage = e.message
+//                )
+//            }
+//        }
+//    }
+
+
+
+
 
     /**
      * Mengatur category ID yang sedang aktif
@@ -174,6 +241,7 @@ class AddDestinationViewModel @Inject constructor(
                     address = state.address,
                     description = state.description,
                     urlLocation = state.urlLocation,
+                    youtubeUrl = state.youtubeUrl.ifEmpty { null }, //revisi add video youtube
                     coverImageUri = state.coverImageUri!!,
                     pictureImageUris = if (state.pictureImageUris.isEmpty()) null else state.pictureImageUris
                 )

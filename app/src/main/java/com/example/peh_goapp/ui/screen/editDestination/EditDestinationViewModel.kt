@@ -18,9 +18,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * State untuk layar edit destinasi
- */
 data class EditDestinationUiState(
     val isLoading: Boolean = true,
     val categoryId: Int = 0,
@@ -29,6 +26,7 @@ data class EditDestinationUiState(
     val address: String = "",
     val description: String = "",
     val urlLocation: String = "",
+    val youtubeUrl: String = "", // Field baru
     val coverImage: Bitmap? = null,
     val coverImageUri: Uri? = null,
     val isNewCoverSelected: Boolean = false,
@@ -40,13 +38,11 @@ data class EditDestinationUiState(
     val addressError: String? = null,
     val descriptionError: String? = null,
     val urlLocationError: String? = null,
+    val youtubeUrlError: String? = null, // Field baru
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
 )
 
-/**
- * ViewModel untuk mengelola layar edit destinasi
- */
 @HiltViewModel
 class EditDestinationViewModel @Inject constructor(
     private val destinationRepository: DestinationRepository,
@@ -57,9 +53,6 @@ class EditDestinationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(EditDestinationUiState())
     val uiState: StateFlow<EditDestinationUiState> = _uiState.asStateFlow()
 
-    /**
-     * Memuat detail destinasi untuk diedit
-     */
     fun loadDestinationDetail(categoryId: Int, destinationId: Int) {
         _uiState.update {
             it.copy(
@@ -82,6 +75,7 @@ class EditDestinationViewModel @Inject constructor(
                                 address = destination.address,
                                 description = destination.description,
                                 urlLocation = destination.urlLocation,
+                                youtubeUrl = destination.youtubeUrl ?: "", // Load YouTube URL
                                 pictures = destination.pictures
                             )
                         }
@@ -114,9 +108,106 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memuat gambar cover
-     */
+    // Fungsi untuk update YouTube URL
+    fun updateYoutubeUrl(url: String) {
+        _uiState.update {
+            it.copy(
+                youtubeUrl = url,
+                youtubeUrlError = validateYoutubeUrl(url)
+            )
+        }
+    }
+
+    private fun validateYoutubeUrl(url: String): String? {
+        return when {
+            url.isNotEmpty() && !isValidYoutubeUrl(url) ->
+                "Format URL YouTube tidak valid. Gunakan: youtube.com/watch?v=... atau youtu.be/..."
+            else -> null
+        }
+    }
+
+    private fun isValidYoutubeUrl(url: String): Boolean {
+        val patterns = listOf(
+            "^(https?://)?(www\\.)?(youtube\\.com/(watch\\?v=|embed/)|youtu\\.be/)\\S+$",
+            "^[\\w-]{11}$" // Just YouTube video ID
+        )
+        return patterns.any { pattern ->
+            Regex(pattern).matches(url)
+        }
+    }
+
+    fun updateDestination(onSuccess: () -> Unit) {
+        val state = _uiState.value
+        val nameError = validateName(state.name)
+        val addressError = validateAddress(state.address)
+        val descriptionError = validateDescription(state.description)
+        val urlLocationError = validateUrlLocation(state.urlLocation)
+        val youtubeUrlError = validateYoutubeUrl(state.youtubeUrl) // Validasi YouTube URL
+
+        _uiState.update {
+            it.copy(
+                nameError = nameError,
+                addressError = addressError,
+                descriptionError = descriptionError,
+                urlLocationError = urlLocationError,
+                youtubeUrlError = youtubeUrlError
+            )
+        }
+
+        if (nameError != null || addressError != null || descriptionError != null ||
+            urlLocationError != null || youtubeUrlError != null) {
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            try {
+                val result = destinationRepository.updateDestination(
+                    categoryId = state.categoryId,
+                    destinationId = state.destinationId,
+                    name = state.name,
+                    address = state.address,
+                    description = state.description,
+                    urlLocation = state.urlLocation,
+                    //youtubeUrl = state.youtubeUrl.ifEmpty { null }, // Tambahkan YouTube URL
+                    coverImageUri = if (state.isNewCoverSelected) state.coverImageUri else null,
+                    pictureImageUris = state.pictureImageUris,
+                    removedPictureIds = state.removedPictureIds
+                )
+
+                when (result) {
+                    is ApiResult.Success -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isSuccess = true
+                            )
+                        }
+                        delay(100)
+                        onSuccess()
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = result.errorMessage
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Terjadi kesalahan: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    // Fungsi-fungsi lainnya tetap sama...
     private suspend fun loadCoverImage(destinationId: Int) {
         try {
             val bitmap = base64ImageService.getDestinationCoverImage(destinationId)
@@ -133,9 +224,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memuat gambar tambahan
-     */
     private suspend fun loadPictureImage(pictureId: Int) {
         try {
             val bitmap = base64ImageService.getPictureImage(pictureId)
@@ -145,13 +233,47 @@ class EditDestinationViewModel @Inject constructor(
                 it.copy(pictureImages = updatedPictureImages)
             }
         } catch (e: Exception) {
-            // Tetap lanjutkan meskipun ada gambar yang gagal dimuat
+            // Handle error silently
         }
     }
 
-    /**
-     * Memperbarui nama destinasi
-     */
+    // Fungsi validasi
+    private fun validateName(name: String): String? {
+        return when {
+            name.isBlank() -> "Nama destinasi tidak boleh kosong"
+            name.length < 3 -> "Nama destinasi minimal 3 karakter"
+            name.length > 150 -> "Nama destinasi maksimal 150 karakter"
+            else -> null
+        }
+    }
+
+    private fun validateAddress(address: String): String? {
+        return when {
+            address.isBlank() -> "Alamat tidak boleh kosong"
+            address.length < 5 -> "Alamat minimal 5 karakter"
+            address.length > 150 -> "Alamat maksimal 150 karakter"
+            else -> null
+        }
+    }
+
+    private fun validateDescription(description: String): String? {
+        return when {
+            description.isBlank() -> "Deskripsi tidak boleh kosong"
+            description.length < 10 -> "Deskripsi minimal 10 karakter"
+            else -> null
+        }
+    }
+
+    private fun validateUrlLocation(url: String): String? {
+        return when {
+            url.isBlank() -> "URL lokasi tidak boleh kosong"
+            !url.contains("maps") && !url.contains("goo.gl") -> "URL harus berupa link Google Maps"
+            url.length > 200 -> "URL maksimal 200 karakter"
+            else -> null
+        }
+    }
+
+    // Fungsi-fungsi update field lainnya
     fun updateName(name: String) {
         _uiState.update {
             it.copy(
@@ -161,9 +283,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memperbarui alamat destinasi
-     */
     fun updateAddress(address: String) {
         _uiState.update {
             it.copy(
@@ -173,9 +292,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memperbarui deskripsi destinasi
-     */
     fun updateDescription(description: String) {
         _uiState.update {
             it.copy(
@@ -185,9 +301,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Memperbarui URL lokasi
-     */
     fun updateUrlLocation(urlLocation: String) {
         _uiState.update {
             it.copy(
@@ -197,9 +310,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Mengubah gambar cover
-     */
     fun setCoverImage(uri: Uri) {
         _uiState.update {
             it.copy(
@@ -209,9 +319,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Menambahkan gambar tambahan
-     */
     fun addPictureImage(uri: Uri) {
         val currentUris = _uiState.value.pictureImageUris
         if (currentUris.size < 3 - _uiState.value.pictures.size + _uiState.value.removedPictureIds.size) {
@@ -221,9 +328,6 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Menghapus gambar tambahan baru
-     */
     fun removePictureImage(uri: Uri) {
         val currentUris = _uiState.value.pictureImageUris
         _uiState.update {
@@ -231,161 +335,21 @@ class EditDestinationViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Menghapus gambar tambahan yang sudah ada
-     */
     fun removePicture(pictureId: Int) {
         val currentRemovedIds = _uiState.value.removedPictureIds
         _uiState.update {
             it.copy(removedPictureIds = currentRemovedIds + pictureId)
         }
-
-        // Log untuk debug
-        Log.d(TAG, "Menandai gambar dengan ID $pictureId untuk dihapus")
-        Log.d(TAG, "Total removedPictureIds: ${_uiState.value.removedPictureIds}")
     }
 
-    /**
-     * Membatalkan penghapusan gambar tambahan yang sudah ada
-     */
     fun undoRemovePicture(pictureId: Int) {
         val currentRemovedIds = _uiState.value.removedPictureIds
         _uiState.update {
             it.copy(removedPictureIds = currentRemovedIds.filter { it != pictureId })
         }
-
-        // Log untuk debug
-        Log.d(TAG, "Membatalkan penghapusan gambar dengan ID $pictureId")
-        Log.d(TAG, "Total removedPictureIds: ${_uiState.value.removedPictureIds}")
     }
 
-    /**
-     * Menyimpan perubahan pada destinasi
-     */
-    fun updateDestination(onSuccess: () -> Unit) {
-        // Validasi input
-        val state = _uiState.value
-        val nameError = validateName(state.name)
-        val addressError = validateAddress(state.address)
-        val descriptionError = validateDescription(state.description)
-        val urlLocationError = validateUrlLocation(state.urlLocation)
-
-        // Update state dengan error jika ada
-        _uiState.update {
-            it.copy(
-                nameError = nameError,
-                addressError = addressError,
-                descriptionError = descriptionError,
-                urlLocationError = urlLocationError
-            )
-        }
-
-        // Cek apakah ada error
-        if (nameError != null || addressError != null || descriptionError != null || urlLocationError != null) {
-            return
-        }
-
-        // Log informasi untuk debugging
-        Log.d(TAG, "Memulai proses update destinasi")
-        Log.d(TAG, "CategoryId: ${state.categoryId}, DestinationId: ${state.destinationId}")
-        Log.d(TAG, "Cover baru dipilih: ${state.isNewCoverSelected}")
-        Log.d(TAG, "Jumlah gambar baru: ${state.pictureImageUris.size}")
-        Log.d(TAG, "Gambar yang akan dihapus: ${state.removedPictureIds}")
-
-        // Mulai proses update destinasi
-        _uiState.update { it.copy(isLoading = true) }
-
-        viewModelScope.launch {
-            try {
-                // Buat request update dengan semua data yang diperlukan
-                val result = destinationRepository.updateDestination(
-                    categoryId = state.categoryId,
-                    destinationId = state.destinationId,
-                    name = state.name,
-                    address = state.address,
-                    description = state.description,
-                    urlLocation = state.urlLocation,
-                    coverImageUri = if (state.isNewCoverSelected) state.coverImageUri else null,
-                    pictureImageUris = if (state.pictureImageUris.isEmpty()) null else state.pictureImageUris,
-                    removedPictureIds = if (state.removedPictureIds.isEmpty()) null else state.removedPictureIds
-                )
-
-                when (result) {
-                    is ApiResult.Success -> {
-                        // Delay sedikit untuk memastikan tampilan loading terlihat
-                        delay(500)
-
-                        // Update state sebelum navigasi
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                isSuccess = true,
-                                errorMessage = null
-                            )
-                        }
-
-                        // Panggil callback untuk navigasi
-                        onSuccess()
-                    }
-                    is ApiResult.Error -> {
-                        Log.e(TAG, "Error update: ${result.errorMessage}")
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                errorMessage = result.errorMessage
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Exception saat update: ${e.message}", e)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Terjadi kesalahan: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * Menghapus pesan error
-     */
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
-    }
-
-    // Fungsi-fungsi validasi
-    private fun validateName(name: String): String? {
-        return when {
-            name.isBlank() -> "Nama destinasi tidak boleh kosong"
-            name.length > 150 -> "Nama destinasi maksimal 150 karakter"
-            else -> null
-        }
-    }
-
-    private fun validateAddress(address: String): String? {
-        return when {
-            address.isBlank() -> "Alamat destinasi tidak boleh kosong"
-            address.length > 150 -> "Alamat destinasi maksimal 150 karakter"
-            else -> null
-        }
-    }
-
-    private fun validateDescription(description: String): String? {
-        return when {
-            description.isBlank() -> "Deskripsi destinasi tidak boleh kosong"
-            else -> null
-        }
-    }
-
-    private fun validateUrlLocation(urlLocation: String): String? {
-        return when {
-            urlLocation.isBlank() -> "URL lokasi tidak boleh kosong"
-            urlLocation.length > 200 -> "URL lokasi maksimal 200 karakter"
-            !urlLocation.startsWith("http") -> "URL lokasi harus diawali dengan http:// atau https://"
-            else -> null
-        }
     }
 }

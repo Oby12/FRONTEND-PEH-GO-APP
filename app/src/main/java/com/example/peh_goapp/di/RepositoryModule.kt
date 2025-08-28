@@ -1,10 +1,13 @@
 package com.example.peh_goapp.di
 
+import android.content.ContentResolver
 import android.content.Context
 import com.example.peh_goapp.data.local.TokenPreference
 import com.example.peh_goapp.data.remote.api.ApiService
+import com.example.peh_goapp.data.remote.api.OtherApiService
 import com.example.peh_goapp.data.repository.DestinationRepository
 import com.example.peh_goapp.data.repository.FavoriteRepository
+import com.example.peh_goapp.data.repository.OtherRepository
 import com.example.peh_goapp.data.repository.StatsRepository
 import com.example.peh_goapp.data.repository.UserRepository
 import dagger.Module
@@ -61,4 +64,27 @@ object RepositoryModule {
         return FavoriteRepository(apiService, tokenPreference)
     }
 
+    // ADD OTHER REPOSITORY
+    @Provides
+    @Singleton
+    fun provideOtherRepository(
+        apiService: ApiService, // Use main ApiService
+        tokenPreference: TokenPreference,
+        @ApplicationContext context: Context
+    ): OtherRepository {
+        return OtherRepository(
+            apiService, // Changed from otherApiService to apiService
+            tokenPreference,
+            context.contentResolver
+        )
+    }
+
+    // ADD CONTENT RESOLVER PROVIDER
+    @Provides
+    @Singleton
+    fun provideContentResolver(
+        @ApplicationContext context: Context
+    ): ContentResolver {
+        return context.contentResolver
+    }
 }
